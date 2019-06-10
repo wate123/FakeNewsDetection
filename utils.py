@@ -1,6 +1,6 @@
 from os import walk
 from os.path import join
-import json
+import json, string
 # Memory saving loading words
 
 
@@ -10,21 +10,18 @@ class NewsContent(object):
         self.site = site
         self.news_type = news_type
         self.list_news_files = self.get_list_news_files('json')
+        # print(self.list_news_files)
 
     def __iter__(self):
         for file_path in self.list_news_files:
             with open(file_path, 'r') as f:
                 text = json.load(f)['text']
-                
-                #removes punctuation from text data 
                 table = str.maketrans("","", string.punctuation)
                 rtext = text.translate(table)
-                
-                # print(text.split())
-                yield text.split()
+                yield rtext.split()
 
     '''
-    Return all the files you want in the provided directory
+    Return files path iterator you want in the provided directory
     @:param directory root direction you want to search
     '''
     def get_list_news_files(self, file_ext):
@@ -35,5 +32,5 @@ class NewsContent(object):
             for f in files:
                 if f.endswith("."+file_ext) and not dirs:
                     list_news_files.append(join(root, f))
-        return list_news_files
+        return iter(list_news_files)
 

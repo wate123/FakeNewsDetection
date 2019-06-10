@@ -7,3 +7,4 @@ sentences = NewsContent(
     './fakenewsnet_dataset', 'politifact', 'fake')
 model = Word2Vec(sentences, sg=1, size=100, workers=4, min_count=1)
 word_vector = model.wv
+print(len(model.wv.vocab))
