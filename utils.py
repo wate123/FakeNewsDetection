@@ -15,6 +15,11 @@ class NewsContent(object):
         for file_path in self.list_news_files:
             with open(file_path, 'r') as f:
                 text = json.load(f)['text']
+                
+                #removes punctuation from text data 
+                table = str.maketrans("","", string.punctuation)
+                rtext = text.translate(table)
+                
                 # print(text.split())
                 yield text.split()
 
