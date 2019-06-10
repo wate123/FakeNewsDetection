@@ -20,7 +20,7 @@ class NewsContent(object):
                 CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces, strip_numeric, remove_stopwords]
                 text = json.load(f)['text']
                 words = preprocess_string(text, filters=CUSTOM_FILTERS)
-                print(words)
+                # print(words)
                 yield words
 
     '''
@@ -32,8 +32,11 @@ class NewsContent(object):
         list_news_files = []
         site_folder = join(self.dirname, self.site)
         news_path = join(site_folder, self.news_type)
-        for root, dirs, files in walk(news_path):
+        exclude = ["tweets", "retweets", "user_profile", "user_timeline_tweets", "user_followers", "user_following"]
+        for root, dirs, files in walk(news_path, topdown=True):
+            dirs[:] = [d for d in dirs if d not in exclude]
+            # print(dirs)
             for f in files:
-                if f.endswith("." + file_ext) and not dirs:
+                if f.endswith("." + file_ext) and len(dirs) == 0:
                     list_news_files.append(join(root, f))
         return iter(list_news_files)
