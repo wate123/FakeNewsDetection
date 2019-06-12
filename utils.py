@@ -17,6 +17,55 @@ english_stemmer = nltk.stem.SnowballStemmer('english')
 stopwords = set(nltk.corpus.stopwords.words('english'))
 token_pattern = r"(?u)\b\w\w+\b"
 
+def stem_tokens(tokens, stemmer):
+        stemmed= []
+        for token in tokens:
+            stemmed.append(stemmer.stem(token))
+        return stemmed
+    
+    
+def preprocess(line, token_pattern=token_pattern, exclude_num = True, exclude_stopword=True,stem=True):
+            token_pattern = re.compile(token_pattern, flags = re.UNICODE)
+            tokens = [x.lower() for x in token_pattern.findall(line)]
+            tokens_stemmed = tokens
+            
+            if stem:
+                tokens_stemmed = stem_tokens(tokens, english_stemmer)
+            if exclude_num:
+                tokens_stemmed = [x for x in tokens_stemmed if not x.isdigit() ]
+              
+            if exclude_stopword:
+                tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
+            return tokens_stemmed 
+
+def remove_emoji(text):
+        #using regex to identify all emojis
+        emoji_pattern = re.compile("["
+                        u"\U0001F600-\U0001F64F"  # emoticons
+                        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                        u"\U00002702-\U000027B0"
+                        u"\U000024C2-\U0001F251"
+                        u"\U0001f926-\U0001f937"
+                        u'\U00010000-\U0010ffff'
+                        u"\u200d"
+                        u"\u2640-\u2642"
+                        u"\u2600-\u2B55"
+                        u"\u23cf"
+                        u"\u23e9"
+                        u"\u231a"
+                        u"\u3030"
+                        u"\ufe0f"
+            "]+", flags=re.UNICODE)
+    
+   
+        words = emoji_pattern.sub(r'', text)
+        return words
+
+
+
+
 class NewsContent(object):
     def __init__(self, dirname, site, news_type, feature_type):
         self.dirname = dirname
@@ -25,51 +74,6 @@ class NewsContent(object):
         self.feature_type = feature_type
         self.list_news_files = self.get_list_news_files('json')
 
-     #for stemming data 
-     def stem_tokens(tokens, stemmer):
-        stemmed= []
-        for token in tokens:
-            stemmed.append(stemmer.stem(token))
-        return stemmed
-    
-    #for preprocessing data as tokens still need to modify 
-    def preprocess(line, token_pattern=token_pattern,exclude_num=True, exclude_stopword=True,stem=True):
-            token_pattern = re.compile(token_pattern, flags = re.UNICODE)
-            tokens = [x.lower() for x in token_pattern.findall(line)]
-            tokens_stemmed = tokens
-            
-            if stem:
-                tokens_stemmed = NewsContent.stem_tokens(tokens, english_stemmer)
-            if exclude_num:
-                tokens_stemmed = [x for x in tokens_stemmed if not x.isdigit() ]
-            if exclude_stopword:
-                tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
-            return tokens_stemmed 
-    
-    def remove_emoji(self, text):
-        # using regex to identify all emojis
-        emoji_pattern = re.compile("["
-                                   u"\U0001F600-\U0001F64F"  # emoticons
-                                   u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                                   u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                                   u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                                   u"\U00002702-\U000027B0"
-                                   u"\U000024C2-\U0001F251"
-                                   u"\U0001f926-\U0001f937"
-                                   u'\U00010000-\U0010ffff'
-                                   u"\u200d"
-                                   u"\u2640-\u2642"
-                                   u"\u2600-\u2B55"
-                                   u"\u23cf"
-                                   u"\u23e9"
-                                   u"\u231a"
-                                   u"\u3030"
-                                   u"\ufe0f"
-                                   "]+", flags=re.UNICODE)
-
-        # removing any identified emojis from text
-        words = emoji_pattern.sub(r'', text)
-        return words
 
     def __iter__(self):
         for file_path in self.list_news_files:
@@ -81,8 +85,8 @@ class NewsContent(object):
                                   strip_numeric, remove_stopwords]
                 feature = doc[self.feature_type]
                 # self.title = json.load(f)['text']
-                words = self.remove_emoji(feature)
-                words = NewsContent.preprocess(words)
+                words = remove_emoji(feature)
+                words = preprocess(words)
                 #using alternative preprocessing function 
                 #words = preprocess_string(words, filters=CUSTOM_FILTERS)
                 yield words
