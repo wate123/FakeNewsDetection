@@ -2,6 +2,7 @@ import json
 import re
 from os import walk
 from os.path import join
+import nltk
 
 import matplotlib.pyplot as plt
 from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_punctuation, strip_multiple_whitespaces, \
@@ -11,7 +12,10 @@ from sklearn.manifold import TSNE
 
 
 # Memory saving loading words
-
+#global variables 
+english_stemmer = nltk.stem.SnowballStemmer('english')
+stopwords = set(nltk.corpus.stopwords.words('english'))
+token_pattern = r"(?u)\b\w\w+\b"
 
 class NewsContent(object):
     def __init__(self, dirname, site, news_type, feature_type):
@@ -21,6 +25,25 @@ class NewsContent(object):
         self.feature_type = feature_type
         self.list_news_files = self.get_list_news_files('json')
 
+     #for stemming data 
+     def stem_tokens(tokens, stemmer):
+        stemmed= []
+        for token in tokens:
+            stemmed.append(stemmer.stem(token))
+        return stemmed
+    
+    #for preprocessing data as tokens still need to modify 
+    def preprocess(line, token_pattern=token_pattern, exclude_stopword=True,stem=True):
+            token_pattern = re.compile(token_pattern, flags = re.UNICODE)
+            tokens = [x.lower() for x in token_pattern.findall(line)]
+            tokens_stemmed = tokens
+            
+            if stem:
+                tokens_stemmed = NewsContent.stem_tokens(tokens, english_stemmer)
+            if exclude_stopword:
+                tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
+            return tokens_stemmed 
+    
     def remove_emoji(self, text):
         # using regex to identify all emojis
         emoji_pattern = re.compile("["
@@ -57,7 +80,9 @@ class NewsContent(object):
                 feature = doc[self.feature_type]
                 # self.title = json.load(f)['text']
                 words = self.remove_emoji(feature)
-                words = preprocess_string(words, filters=CUSTOM_FILTERS)
+                words = NewsContent.preprocess(words)
+                #using alternative preprocessing function 
+                #words = preprocess_string(words, filters=CUSTOM_FILTERS)
                 yield words
 
     '''
