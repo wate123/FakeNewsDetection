@@ -33,13 +33,15 @@ class NewsContent(object):
         return stemmed
     
     #for preprocessing data as tokens still need to modify 
-    def preprocess(line, token_pattern=token_pattern, exclude_stopword=True,stem=True):
+    def preprocess(line, token_pattern=token_pattern,exclude_num=True, exclude_stopword=True,stem=True):
             token_pattern = re.compile(token_pattern, flags = re.UNICODE)
             tokens = [x.lower() for x in token_pattern.findall(line)]
             tokens_stemmed = tokens
             
             if stem:
                 tokens_stemmed = NewsContent.stem_tokens(tokens, english_stemmer)
+            if exclude_num:
+                tokens_stemmed = [x for x in tokens_stemmed if not x.isdigit() ]
             if exclude_stopword:
                 tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
             return tokens_stemmed 
