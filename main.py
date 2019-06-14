@@ -1,33 +1,28 @@
 from utils import NewsContent
+import json
 from gensim.models import KeyedVectors
 from gensim.models import Word2Vec
 from gensim.models.phrases import Phrases, Phraser
 from gensim.models.word2vec import LineSentence, PathLineSentences
 from gensim.utils import save_as_line_sentence
 import numpy as np
-# from nltk import bigrams, trigrams
-
 import multiprocessing
 from utils import tsne_similar_word_plot, get_ngram
-
-import re
+from word2vecfeature import Word2VecFeatureGenerator
 
 
 
 # sentences iterable
-title = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake', 'title')
-content = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake', 'text')
-# model = KeyedVectors.load_word2vec_format(fname='./GoogleNews-vectors-negative300.bin', binary=True)
-# words = model.index2word
-save_as_line_sentence(title, "title_ls")
-save_as_line_sentence(content, "content_ls")
-sentence = LineSentence('content_ls')
-# b = bigrams(sentence)
-bigram = get_ngram(2, sentence)
-trigram = get_ngram(3, sentence)
-# print(get_ngram(1, sentence))
-# print()
-# title_model = Word2Vec(title, sg=1, size=100, workers=multiprocessing.cpu_count() *10, min_count=1)
-# content_model = Word2Vec(sentence, sg=1, size=100, workers=multiprocessing.cpu_count() *10, min_count=1)
+# title = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake', 'title')
+# content = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake', 'text')
+data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake')
+save_as_line_sentence(data.get_features('title'), "title_ls")
+save_as_line_sentence(data.get_features('text'), "body_ls")
+
+save_as_line_sentence(data.get_features(), "news_ls")
+data.save_reference_table()
+
+w2v = Word2VecFeatureGenerator(LineSentence("news_ls"))
+sim_vec = w2v.get_title_body_cos_sim(data.get_features("pair"))
 
 # tsne_similar_word_plot(model, "trump")

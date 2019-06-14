@@ -69,45 +69,86 @@ def remove_emoji(text):
 
 
 class NewsContent(object):
-    def __init__(self, dirname, site, news_type, feature_type):
+    def __init__(self, dirname, site, news_type):
         self.dirname = dirname
         self.site = site
         self.news_type = news_type
-        self.feature_type = feature_type
-        self.list_news_files = self.get_list_news_files('json')
+        # self.feature_type = feature_type
 
 
-    def __iter__(self):
-        for file_path in self.list_news_files:
+    # def __iter__(self):
+    #     for file_path in self.get_list_news_files():
+    #         with open(file_path, 'r') as f:
+    #             doc = json.load(f)
+    #             assert self.feature_type in doc.keys(), "feature not in the document: " + file_path
+    #             # without stemming
+    #             CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
+    #                               strip_numeric, remove_stopwords]
+    #             # title = doc['title']
+    #             # body = doc['text']
+    #             feature = doc[self.feature_type]
+    #             # self.title = json.load(f)['text']
+    #             # title_words = preprocess(remove_emoji(title))
+    #             # body_words = preprocess(remove_emoji(body))
+    #             words = preprocess(feature)
+    #             #using alternative preprocessing function
+    #             #words = preprocess_string(words, filters=CUSTOM_FILTERS)
+    #             yield words
+
+    def get_features(self, feature_type="all"):
+        for file_path in self.get_list_news_files():
             with open(file_path, 'r') as f:
                 doc = json.load(f)
-                assert self.feature_type in doc.keys(), "feature not in the document: " + file_path
-                # without stemming
-                CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
-                                  strip_numeric, remove_stopwords]
-                feature = doc[self.feature_type]
-                # self.title = json.load(f)['text']
-                words = remove_emoji(feature)
-                words = preprocess(words)
-                #using alternative preprocessing function 
-                #words = preprocess_string(words, filters=CUSTOM_FILTERS)
-                yield words
+                if feature_type == "all":
+                    news = doc['title'] + doc['text']
+                    words = preprocess(remove_emoji(news))
+                    yield words
+                elif feature_type == "pair":
+                    title = preprocess(remove_emoji(doc["title"]))
+                    body = preprocess(remove_emoji(doc['text']))
+                    yield title, body
+                else:
+                    assert feature_type in doc.keys(), "feature not in the document: " + file_path
+                    # without stemming
+                    CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
+                                      strip_numeric, remove_stopwords]
+                    # title = doc['title']
+                    # body = doc['text']
+                    feature = doc[feature_type]
+                    # self.title = json.load(f)['text']
+                    # title_words = preprocess(remove_emoji(title))
+                    # body_words = preprocess(remove_emoji(body))
+                    words = preprocess(remove_emoji(feature))
+                    # using alternative preprocessing function
+                    # words = preprocess_string(words, filters=CUSTOM_FILTERS)
+                    yield words
+
+    '''Create a reference table for each news that contains their unique id, tile, and body'''
+    def save_reference_table(self):
+        big_dict = {}
+        for file_path in self.get_list_news_files():
+            with open(file_path, 'r') as f:
+                doc = json.load(f)
+                big_dict.update({doc["title"]: doc["text"], "label": self.news_type})
+        with open("data.json", 'w+') as file:
+            json.dump(big_dict, file)
+
+
 
     '''
     Return files path iterator you want in the provided directory
     @:param directory root direction you want to search
     '''
 
-    def get_list_news_files(self, file_ext):
+    def get_list_news_files(self):
         list_news_files = []
         site_folder = join(self.dirname, self.site)
         news_path = join(site_folder, self.news_type)
         exclude = ["tweets", "retweets", "user_profile", "user_timeline_tweets", "user_followers", "user_following"]
         for root, dirs, files in walk(news_path, topdown=True):
             dirs[:] = [d for d in dirs if d not in exclude]
-            # print(dirs)
             for f in files:
-                if f.endswith("." + file_ext) and len(dirs) == 0:
+                if f.endswith(".json") and len(dirs) == 0:
                     list_news_files.append(join(root, f))
         return list_news_files
 
