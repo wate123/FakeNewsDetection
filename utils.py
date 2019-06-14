@@ -13,33 +13,52 @@ from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_pu
 # % matplotlib inline
 from sklearn.manifold import TSNE
 
-#global variables 
+# global variables for preprocessing text data
 english_stemmer = nltk.stem.SnowballStemmer('english')
 stopwords = set(nltk.corpus.stopwords.words('english'))
 token_pattern = r"(?u)\b\w\w+\b"
 
+''' 
+Function for tokens for stemming
+'''
 
 def stem_tokens(tokens, stemmer):
     stemmed = []
+    
+    # iterating through tokens and using snowball stemmer
     for token in tokens:
         stemmed.append(stemmer.stem(token))
     return stemmed
 
 
+''' 
+function to preprocess data by tokenizing, exclude: numbers, punctuation, stopwords, and stemming
+'''
+
 def preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stopword=True, stem=True):
+
+    # using regex for token patterns
     token_pattern = re.compile(token_pattern, flags=re.UNICODE)
+
+    # tokenizing and making letters lowercase from data
     tokens = [x.lower() for x in token_pattern.findall(line)]
     tokens_stemmed = tokens
 
+    # set to true so text is preprocessed
     if stem:
+        # calls stemming function
         tokens_stemmed = stem_tokens(tokens, english_stemmer)
+
     if exclude_num:
+        # removes numbers
         tokens_stemmed = [x for x in tokens_stemmed if not x.isdigit()]
 
     if exclude_stopword:
+        # removes stopwords
         tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
     return tokens_stemmed
-"""
+
+'''
 def spell_correction(text):
     
     spell = SpellChecker()
@@ -55,7 +74,7 @@ def spell_correction(text):
         #print(spell.candidates(word))
         #print(correct)
     return correct
-"""
+'''
 
 def remove_emoji(text):
     # using regex to identify all emojis
@@ -77,14 +96,23 @@ def remove_emoji(text):
                                u"\u3030"
                                u"\ufe0f"
                                "]+", flags=re.UNICODE)
-
+    
+    # removes all specified emoji found in text
     words = emoji_pattern.sub(r'', text)
     return words
 
 # Memory saving loading words
 
+'''
+Class to access dataset by directory, site and news type (real or fake). obtain features and collect into data table
+'''
 
 class NewsContent(object):
+    
+    '''
+    Initializer function containing directory, site and news type
+    '''
+    
     def __init__(self, dirname, site, news_type):
         self.dirname = dirname
         self.site = site
@@ -111,18 +139,33 @@ class NewsContent(object):
     #             #words = preprocess_string(words, filters=CUSTOM_FILTERS)
     #             yield words
 
+     '''
+    function to get specific features from news content
+    '''
+
     def get_features(self, feature_type="all"):
+        # reading through directory
         for file_path in self.get_list_news_files():
             with open(file_path, 'r') as f:
+
+                # open document to read and assign to doc
                 doc = json.load(f)
+
+                # to extract all data from news content
                 if feature_type == "all":
                     news = doc['title'] + doc['text']
+
+                    # preprocesses news content
                     words = preprocess(remove_emoji(news))
                     yield words
+
+                # to extract title and text as a pair
                 elif feature_type == "pair":
                     title = preprocess(remove_emoji(doc["title"]))
                     body = preprocess(remove_emoji(doc['text']))
                     yield title, body
+
+                # else if feature asked for is not in data
                 else:
                     assert feature_type in doc.keys(), "feature not in the document: " + file_path
                     # without stemming
@@ -135,24 +178,28 @@ class NewsContent(object):
                     # title_words = preprocess(remove_emoji(title))
                     # body_words = preprocess(remove_emoji(body))
                     words = preprocess(remove_emoji(feature))
-             
-                    #not working currently 
-                    #words = spell_correction(words) 
-                
                     # using alternative preprocessing function
                     # words = preprocess_string(words, filters=CUSTOM_FILTERS)
                     yield words
 
+
     '''Create a reference table for each news that contains their unique id, tile, and body'''
     def save_reference_table(self):
+        
+        # creating dictionary to store news data
         big_dict = {}
+
+        # iterating through directories
         for file_path in self.get_list_news_files():
             with open(file_path, 'r') as f:
+
+                # loading news content into labelled sections
                 doc = json.load(f)
                 big_dict.update({doc["title"]: doc["text"], "label": self.news_type})
+
+        # write contents of dictionary to file
         with open("data.json", 'w+') as file:
             json.dump(big_dict, file)
-
 
 
     '''
@@ -162,45 +209,75 @@ class NewsContent(object):
 
     def get_list_news_files(self):
         list_news_files = []
+
+        # accessing files through directories
         site_folder = join(self.dirname, self.site)
         news_path = join(site_folder, self.news_type)
+
+        # only obtaining the news articles at this time
         exclude = ["tweets", "retweets", "user_profile", "user_timeline_tweets", "user_followers", "user_following"]
+
+        # iterating through directories only focusing on ones containing the news content
         for root, dirs, files in walk(news_path, topdown=True):
             dirs[:] = [d for d in dirs if d not in exclude]
+
+            # collecting all articles
             for f in files:
                 if f.endswith(".json") and len(dirs) == 0:
                     list_news_files.append(join(root, f))
         return list_news_files
 
-
+'''
+Function to get n grams to examine relationship between words in the news content 
+'''
+    
 def get_ngram(n, sentence):
     if n == 1:
         return list(sentence)
+    
+    # create phrases model to find words and ngrams that occur at least once
     ngram = Phraser(Phrases(sentence, min_count=1, threshold=1))
+    
+    # for bigrams and higher grams
     for i in range(2,n):
+        
+        # use model to find ngrams within data
         ngram = Phraser(Phrases(ngram[sentence]))
     return list(ngram[sentence])
 
+'''
+Function to visualize relationships between filtered vocab from news content by creating TSNE model
+'''
 
 def tsne_similar_word_plot(model, word):
-    "Creates and TSNE model and plots it"
+    
     labels = [word]
     tokens = []
 
+    # iterating through data to find similar words to given input
     for word, _ in model.similar_by_word(word):
         tokens.append(model[word])
         labels.append(word)
 
+    # create TSNE model with 2 dimensions, using principal component analysis    
     tsne_model = TSNE(perplexity=40, n_components=2, init='pca', n_iter=2500, random_state=23)
+    
+    # fits tokens into embedded space and returns transformation of tokens
     new_values = tsne_model.fit_transform(tokens)
 
     x = []
     y = []
+    
+    
+    # assigning data to appropiate axes
     for value in new_values:
         x.append(value[0])
         y.append(value[1])
 
+    # setting up figure size
     plt.figure(figsize=(16, 16))
+
+    # plotting and labeling data
     for i in range(len(x)):
         plt.scatter(x[i], y[i])
         plt.annotate(labels[i],
