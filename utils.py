@@ -4,7 +4,7 @@ from os import walk
 from os.path import join
 import nltk
 from gensim.models.phrases import Phrases, Phraser
-
+from spellchecker import SpellChecker
 
 import matplotlib.pyplot as plt
 from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_punctuation, strip_multiple_whitespaces, \
@@ -39,7 +39,23 @@ def preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stop
     if exclude_stopword:
         tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
     return tokens_stemmed
+"""
+def spell_correction(text):
+    
+    spell = SpellChecker()
+    correct = []
 
+    #misspelled = spell.unknown('text')
+    misspelled = spell.unknown(text)
+    
+
+    for word in misspelled:
+        correct = spell.correction(word)
+        
+        #print(spell.candidates(word))
+        #print(correct)
+    return correct
+"""
 
 def remove_emoji(text):
     # using regex to identify all emojis
@@ -119,6 +135,10 @@ class NewsContent(object):
                     # title_words = preprocess(remove_emoji(title))
                     # body_words = preprocess(remove_emoji(body))
                     words = preprocess(remove_emoji(feature))
+             
+                    #not working currently 
+                    #words = spell_correction(words) 
+                
                     # using alternative preprocessing function
                     # words = preprocess_string(words, filters=CUSTOM_FILTERS)
                     yield words
