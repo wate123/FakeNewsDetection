@@ -12,51 +12,48 @@ from sklearn.metrics.pairwise import cosine_similarity
 Class that builds a Word2Vec model (either pre-trained or not) pertaining to the news content 
 '''
 
-class Word2VecFeatureGenerator():
-    
-    '''
+class Word2VecFeatureGenerator(object):
+
+    """
     Initializer function that takes a corpus and specification of whether to use a pretrained model or not
-    '''
+    """
     
     def __init__(self, corpus, pretrain=False):
         
         # uses Google News Word2Vec model
         if pretrain:
             self.model = Word2Vec("./GoogleNews-vectors-negative300.bin", sg=1, size=100, workers=200, min_count=1)
-            
-        # to train own model    
+            print("Google News pretrained model loaded")
+        # to train own model
         else:
             self.model = Word2Vec(corpus, sg=1, size=100, workers=200, min_count=1)
-
-    '''
-    Function to retrieve normalized vectors 
-    '''
+            print("model loaded")
     
     def get_norm_vectors(self, words):
-        # assert type(feature_ls) == LineSentence, "Only LineSentence"
+        """Function to retrieve normalized vectors"""
         vectors = []
         
         # if empty vector no normalization needed naturally
         if len(words) == 0:
             return None
         else:
-            # iteraing through words, normalizing their vectors
+            # Pre-compute L2-normalized vectors.
+            self.model.wv.init_sims()
+            # iterating through words, normalizing their vectors
             for word in words:
+                # ignore all empty
                 try:
-                    # print(self.model.wv.word_vec(word, use_norm=True))
-                    self.model.init_sims()
-                    
                     # saving only the normalized vectors to list
                     vectors.append(self.model.wv.word_vec(word))
                 except KeyError:
                     pass
         return vectors
 
-    '''
-    Function to get results of comparison between a title of article and its body content 
-    '''
-    
     def get_title_body_cos_sim(self, features):
+        """
+        Function to get cosine similarity between a title of article and its body content
+        """
+
         title_vec = None
         body_vec = None
         

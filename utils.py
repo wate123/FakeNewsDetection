@@ -4,7 +4,7 @@ from os import walk
 from os.path import join
 import nltk
 from gensim.models.phrases import Phrases, Phraser
-from spellchecker import SpellChecker
+# from spellchecker import SpellChecker
 
 import matplotlib.pyplot as plt
 from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_punctuation, strip_multiple_whitespaces, \
@@ -14,29 +14,26 @@ from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_pu
 from sklearn.manifold import TSNE
 
 # global variables for preprocessing text data
+
 english_stemmer = nltk.stem.SnowballStemmer('english')
 stopwords = set(nltk.corpus.stopwords.words('english'))
 token_pattern = r"(?u)\b\w\w+\b"
 
-''' 
-Function for tokens for stemming
-'''
 
 def stem_tokens(tokens, stemmer):
+    """
+    Function for tokens for stemming
+    """
     stemmed = []
-    
-    # iterating through tokens and using snowball stemmer
+    #going through tokens stem where needed
     for token in tokens:
         stemmed.append(stemmer.stem(token))
     return stemmed
 
-
-''' 
-function to preprocess data by tokenizing, exclude: numbers, punctuation, stopwords, and stemming
-'''
-
 def preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stopword=True, stem=True):
-
+    """
+    function to preprocess data by tokenizing, exclude: numbers, punctuation, stopwords, and stemming
+    """
     # using regex for token patterns
     token_pattern = re.compile(token_pattern, flags=re.UNICODE)
 
@@ -58,25 +55,24 @@ def preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stop
         tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
     return tokens_stemmed
 
-'''
-def spell_correction(text):
-    
-    spell = SpellChecker()
-    correct = []
-
-    #misspelled = spell.unknown('text')
-    misspelled = spell.unknown(text)
-    
-
-    for word in misspelled:
-        correct = spell.correction(word)
-        
-        #print(spell.candidates(word))
-        #print(correct)
-    return correct
-'''
+# def spell_correction(text):
+#
+#     spell = SpellChecker()
+#     correct = []
+#
+#     #misspelled = spell.unknown('text')
+#     misspelled = spell.unknown(text)
+#
+#
+#     for word in misspelled:
+#         correct = spell.correction(word)
+#
+#         #print(spell.candidates(word))
+#         #print(correct)
+#     return correct
 
 def remove_emoji(text):
+    """function to remove emojis"""
     # using regex to identify all emojis
     emoji_pattern = re.compile("["
                                u"\U0001F600-\U0001F64F"  # emoticons
@@ -96,24 +92,19 @@ def remove_emoji(text):
                                u"\u3030"
                                u"\ufe0f"
                                "]+", flags=re.UNICODE)
-    
-    # removes all specified emoji found in text
+
+    #removes all specified emoji found in text
     words = emoji_pattern.sub(r'', text)
     return words
 
-# Memory saving loading words
-
-'''
-Class to access dataset by directory, site and news type (real or fake). obtain features and collect into data table
-'''
 
 class NewsContent(object):
-    
-    '''
-    Initializer function containing directory, site and news type
-    '''
-    
+    """
+    Class to access dataset by directory, site and news type (real or fake). obtain features and collect into data table
+    """
+
     def __init__(self, dirname, site, news_type):
+        """Initializer function containing directory, site and news type"""
         self.dirname = dirname
         self.site = site
         self.news_type = news_type
@@ -139,11 +130,8 @@ class NewsContent(object):
     #             #words = preprocess_string(words, filters=CUSTOM_FILTERS)
     #             yield words
 
-     '''
-    function to get specific features from news content
-    '''
-
     def get_features(self, feature_type="all"):
+        """function to get specific features from news content"""
         # reading through directory
         for file_path in self.get_list_news_files():
             with open(file_path, 'r') as f:
@@ -165,27 +153,21 @@ class NewsContent(object):
                     body = preprocess(remove_emoji(doc['text']))
                     yield title, body
 
-                # else if feature asked for is not in data
+                # else you only need either title or body
                 else:
                     assert feature_type in doc.keys(), "feature not in the document: " + file_path
                     # without stemming
-                    CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
-                                      strip_numeric, remove_stopwords]
-                    # title = doc['title']
-                    # body = doc['text']
+                    # CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
+                    #                   strip_numeric, remove_stopwords]
+
                     feature = doc[feature_type]
-                    # self.title = json.load(f)['text']
-                    # title_words = preprocess(remove_emoji(title))
-                    # body_words = preprocess(remove_emoji(body))
                     words = preprocess(remove_emoji(feature))
                     # using alternative preprocessing function
                     # words = preprocess_string(words, filters=CUSTOM_FILTERS)
                     yield words
 
-
-    '''Create a reference table for each news that contains their unique id, tile, and body'''
     def save_reference_table(self):
-        
+        """Create a reference table for each news that contains their unique id, tile, and body"""
         # creating dictionary to store news data
         big_dict = {}
 
@@ -195,19 +177,14 @@ class NewsContent(object):
 
                 # loading news content into labelled sections
                 doc = json.load(f)
-                big_dict.update({doc["title"]: doc["text"], "label": self.news_type})
+                big_dict.update({remove_emoji(doc["title"]): remove_emoji(doc["text"]), "label": self.news_type})
 
         # write contents of dictionary to file
         with open("data.json", 'w+') as file:
             json.dump(big_dict, file)
 
-
-    '''
-    Return files path iterator you want in the provided directory
-    @:param directory root direction you want to search
-    '''
-
     def get_list_news_files(self):
+        """Return files path iterator of news"""
         list_news_files = []
 
         # accessing files through directories
@@ -227,30 +204,27 @@ class NewsContent(object):
                     list_news_files.append(join(root, f))
         return list_news_files
 
-'''
-Function to get n grams to examine relationship between words in the news content 
-'''
     
 def get_ngram(n, sentence):
+    """
+    Function to get n grams to examine relationship between words in the news content
+    """
     if n == 1:
         return list(sentence)
     
     # create phrases model to find words and ngrams that occur at least once
     ngram = Phraser(Phrases(sentence, min_count=1, threshold=1))
-    
+
     # for bigrams and higher grams
     for i in range(2,n):
-        
-        # use model to find ngrams within data
-        ngram = Phraser(Phrases(ngram[sentence]))
-    return list(ngram[sentence])
+        ngram = Phraser(Phrases(ngram[sentence], min_count=1, threshold=1))
+    return ngram[sentence]
 
-'''
-Function to visualize relationships between filtered vocab from news content by creating TSNE model
-'''
 
 def tsne_similar_word_plot(model, word):
-    
+    """
+    Function to visualize relationships between filtered vocab from news content with TSNE
+    """
     labels = [word]
     tokens = []
 
@@ -267,8 +241,7 @@ def tsne_similar_word_plot(model, word):
 
     x = []
     y = []
-    
-    
+
     # assigning data to appropiate axes
     for value in new_values:
         x.append(value[0])
@@ -287,3 +260,10 @@ def tsne_similar_word_plot(model, word):
                      ha='right',
                      va='bottom')
     plt.show()
+
+
+def division(x, y, val = 0.0):
+    """division function used to divide two number"""
+    if y != 0.0:
+        val = float(x)/y
+    return val

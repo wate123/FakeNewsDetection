@@ -1,5 +1,6 @@
 from utils import NewsContent
 import json
+from gensim.corpora.dictionary import Dictionary
 from gensim.models import KeyedVectors
 from gensim.models import Word2Vec
 from gensim.models.phrases import Phrases, Phraser
@@ -8,9 +9,9 @@ from gensim.utils import save_as_line_sentence
 import numpy as np
 import multiprocessing
 from utils import tsne_similar_word_plot, get_ngram
-from word2vecfeature import Word2VecFeatureGenerator
-
-
+from Word2VecFeature import Word2VecFeatureGenerator
+from CountFeature import CountFeatureGenerator
+import json
 
 # sentences iterable
 # title = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake', 'title')
@@ -18,20 +19,31 @@ from word2vecfeature import Word2VecFeatureGenerator
 
 # call NewsContent class to preprocess/tokenize the news content
 data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake')
+title_words_list = list(data.get_features('title'))
 
-# save news content by specified feature by each sentence on a seperate line, tokens seperated by space
-save_as_line_sentence(data.get_features('title'), "title_ls")
-save_as_line_sentence(data.get_features('text'), "body_ls")
+save_as_line_sentence(data.get_features('title'), "title_ls.txt")
+save_as_line_sentence(data.get_features('text'), "body_ls.txt")
 
-save_as_line_sentence(data.get_features(), "news_ls")
-
-# storing all title and body content into one table for future reference
+save_as_line_sentence(data.get_features(), "news_ls.txt")
 data.save_reference_table()
 
-# creates word2vec model for news content
-w2v = Word2VecFeatureGenerator(LineSentence("news_ls"))
+w2v = Word2VecFeatureGenerator(LineSentence("news_ls.txt"))
 
-# finds similarity in body content with pairs
 sim_vec = w2v.get_title_body_cos_sim(data.get_features("pair"))
 
+# print(len(list(data.get_features('text'))))
+# print(len(list(LineSentence('body_ls.txt'))))
+
 # tsne_similar_word_plot(model, "trump")
+# print(len(list(data.get_features("pair"))))
+# for i in data.get_features("pair"):
+#     print(i)
+
+# Count feature
+cfg = CountFeatureGenerator(data.get_features("pair"))
+cfg.process_and_save()
+
+# title_uni_count = cfg.get_article_part_count(title_words_list, 1)
+# title_bi_count = cfg.get_article_part_count(title_words_list, 2)
+# title_tri_count = cfg.get_article_part_count(title_words_list, 3)
+# print(title_bi_count)
