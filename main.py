@@ -13,6 +13,7 @@ from Word2VecFeature import Word2VecFeatureGenerator
 from CountFeature import CountFeatureGenerator
 from SentimentFeature import SentimentFeatureGenerator
 from FeatureGenerator import FeatureGenerator
+from TfidfFeature import TfidfFeature
 import json
 
 # sentences iterable
@@ -32,6 +33,10 @@ data.save_in_sentence_form()
 w2v = Word2VecFeatureGenerator(LineSentence("news_ls.txt"))
 
 sim_vec = w2v.get_title_body_cos_sim(data.get_features("pair"))
+
+tfidf = TfidfFeature()
+tfidf.process()
+tfidf.get_scores()
 
 # print(len(list(data.get_features('text'))))
 # print(len(list(LineSentence('body_ls.txt'))))
