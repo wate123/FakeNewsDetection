@@ -166,9 +166,8 @@ class NewsContent(object):
                     # words = preprocess_string(words, filters=CUSTOM_FILTERS)
                     yield words
 
-    def save_reference_table(self):
-        """Create a reference table for each news that contains their unique id, tile, and body"""
-        # creating dictionary to store news data
+    def save_in_sentence_form(self):
+        """Create a json file for each news that contains their tile, body, and label"""
         big_dict = {}
 
         # iterating through directories
@@ -178,7 +177,6 @@ class NewsContent(object):
                 # loading news content into labelled sections
                 doc = json.load(f)
                 big_dict.update({remove_emoji(doc["title"]): remove_emoji(doc["text"]), "label": self.news_type})
-
         # write contents of dictionary to file
         with open("data.json", 'w+') as file:
             json.dump(big_dict, file)
@@ -267,3 +265,7 @@ def division(x, y, val = 0.0):
     if y != 0.0:
         val = float(x)/y
     return val
+
+
+def unpack_pair_generator(data):
+    return [{"title": title, "body": body} for count, (title, body) in enumerate(data)]

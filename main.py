@@ -11,6 +11,8 @@ import multiprocessing
 from utils import tsne_similar_word_plot, get_ngram
 from Word2VecFeature import Word2VecFeatureGenerator
 from CountFeature import CountFeatureGenerator
+from SentimentFeature import SentimentFeatureGenerator
+from FeatureGenerator import FeatureGenerator
 import json
 
 # sentences iterable
@@ -21,11 +23,11 @@ import json
 data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake')
 title_words_list = list(data.get_features('title'))
 
-save_as_line_sentence(data.get_features('title'), "title_ls.txt")
-save_as_line_sentence(data.get_features('text'), "body_ls.txt")
-
+# save_as_line_sentence(data.get_features('title'), "title_ls.txt")
+# save_as_line_sentence(data.get_features('text'), "body_ls.txt")
+#
 save_as_line_sentence(data.get_features(), "news_ls.txt")
-data.save_reference_table()
+data.save_in_sentence_form()
 
 w2v = Word2VecFeatureGenerator(LineSentence("news_ls.txt"))
 
@@ -37,12 +39,12 @@ sim_vec = w2v.get_title_body_cos_sim(data.get_features("pair"))
 # tsne_similar_word_plot(model, "trump")
 # print(len(list(data.get_features("pair"))))
 # for i in data.get_features("pair"):
-#     print(i)
-
 # Count feature
 cfg = CountFeatureGenerator(data.get_features("pair"))
 cfg.process_and_save()
 
+std = SentimentFeatureGenerator()
+std.process_and_save()
 # title_uni_count = cfg.get_article_part_count(title_words_list, 1)
 # title_bi_count = cfg.get_article_part_count(title_words_list, 2)
 # title_tri_count = cfg.get_article_part_count(title_words_list, 3)

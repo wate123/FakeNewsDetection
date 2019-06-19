@@ -4,17 +4,20 @@ from collections import defaultdict
 from utils import division
 import json
 from nltk import sent_tokenize
+from utils import unpack_pair_generator
+from FeatureGenerator import FeatureGenerator
+
 
 class CountFeatureGenerator(object):
     # def __init__(self):
     def __init__(self, data, name='countFeatureGenerator' ):
         # super(CountFeatureGenerator, self).__init__(name)
         self.data = data
-        self.pair_news = []
+        self.pair_news = unpack_pair_generator(data)
         self.parts = ["title", "body"]
         self.ngrams = ["uni", "bi", "tri"]
         self.count_features = {}
-        self.unpack_pair_generator()
+        # self.unpack_pair_generator()
 
     def get_article_part_count(self, part, ngram=1):
         # return [len() for count in get_ngram(ngram, self.data)]
@@ -22,9 +25,9 @@ class CountFeatureGenerator(object):
         # print(pair_dict)
         return [len(t) for t in get_ngram(ngram, part)]
 
-    def unpack_pair_generator(self):
-        for count, (title, body) in enumerate(self.data):
-            self.pair_news.append({"title": title, "body": body})
+    # def unpack_pair_generator(self):
+    #     for count, (title, body) in enumerate(self.data):
+    #         self.pair_news.append({"title": title, "body": body})
 
 
     def process_and_save(self):
@@ -56,6 +59,8 @@ class CountFeatureGenerator(object):
             self.count_features["len_sent_title"] = [len(sent_tokenize(title)) for title in data]
             self.count_features["len_sent_body"] = [len(sent_tokenize(body)) for _, body in data.items()]
 
+        # self.count_features["len_sent_title"] = [len(sent_tokenize(" ".join(news["title"]))) for news in self.pair_news]
+        # self.count_features["len_sent_body"] = [len(sent_tokenize(" ".join(news["body"]))) for news in self.pair_news]
         with open("count_feature.json", mode="w+") as f:
             json.dump(self.count_features, indent=4, fp=f)
 
