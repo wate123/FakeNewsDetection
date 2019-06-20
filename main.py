@@ -15,24 +15,23 @@ from SentimentFeature import SentimentFeatureGenerator
 from FeatureGenerator import FeatureGenerator
 from TfidfFeature import TfidfFeature
 import json
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-# sentences iterable
-# title = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake', 'title')
-# content = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake', 'text')
 
 # call NewsContent class to preprocess/tokenize the news content
-data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', 'politifact', 'fake')
-title_words_list = list(data.get_features('title'))
+# data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
+data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact'], ['fake'])
+# title_words_list = list(data.get_features('title'))
 
 # save_as_line_sentence(data.get_features('title'), "title_ls.txt")
 # save_as_line_sentence(data.get_features('text'), "body_ls.txt")
 #
-save_as_line_sentence(data.get_features(), "news_ls.txt")
+# save_as_line_sentence(data.get_features(), "news_ls.txt")
 data.save_in_sentence_form()
-
-w2v = Word2VecFeatureGenerator(LineSentence("news_ls.txt"))
-
-sim_vec = w2v.get_title_body_cos_sim(data.get_features("pair"))
+#
+# w2v = Word2VecFeatureGenerator(LineSentence("news_ls.txt"))
+#
+# sim_vec = w2v.get_title_body_cos_sim(data.get_features("pair"))
 
 tfidf = TfidfFeature()
 tfidf.process()
@@ -45,11 +44,13 @@ tfidf.get_scores()
 # print(len(list(data.get_features("pair"))))
 # for i in data.get_features("pair"):
 # Count feature
-cfg = CountFeatureGenerator(data.get_features("pair"))
-cfg.process_and_save()
+cfg = CountFeatureGenerator()
+cfg.process_and_save(data.get_features("pair"))
+# print(data)
+# std = SentimentFeatureGenerator()
+# std.read()
 
-std = SentimentFeatureGenerator()
-std.process_and_save()
+
 # title_uni_count = cfg.get_article_part_count(title_words_list, 1)
 # title_bi_count = cfg.get_article_part_count(title_words_list, 2)
 # title_tri_count = cfg.get_article_part_count(title_words_list, 3)

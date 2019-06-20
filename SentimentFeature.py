@@ -37,3 +37,5 @@ class SentimentFeatureGenerator(object):
             [self.compute_sentiment(sent_tokenize(news["title"])) for news in self.pair_news]
         self.sentiment_feature["body_polarity_score"] = \
             [self.compute_sentiment(sent_tokenize(news["body"])) for news in self.pair_news]
+        with open('sentiment_feature.json', mode="w+") as f:
+            json.dump(self.sentiment_feature, indent=4, fp=f)

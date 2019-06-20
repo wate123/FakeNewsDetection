@@ -1,7 +1,7 @@
 import json
 import re
 from os import walk
-from os.path import join
+from os.path import join, exists
 import nltk
 from gensim.models.phrases import Phrases, Phraser
 # from spellchecker import SpellChecker
@@ -103,11 +103,20 @@ class NewsContent(object):
     Class to access dataset by directory, site and news type (real or fake). obtain features and collect into data table
     """
 
-    def __init__(self, dirname, site, news_type):
+    def __init__(self, dirname, sites, news_types):
         """Initializer function containing directory, site and news type"""
         self.dirname = dirname
-        self.site = site
-        self.news_type = news_type
+        self.sites = []
+        self.news_types = []
+        if type(sites) == str:
+            self.sites.append(sites)
+        if type(news_types) == str:
+            self.news_types.append(news_types)
+        else:
+            self.sites = sites
+            self.news_types = news_types
+        self.news_type = ""
+        self.list_news_path = list(self.get_list_news_files())
         # self.feature_type = feature_type
 
 
@@ -133,76 +142,89 @@ class NewsContent(object):
     def get_features(self, feature_type="all"):
         """function to get specific features from news content"""
         # reading through directory
-        for file_path in self.get_list_news_files():
+        for file_path in self.list_news_path:
             with open(file_path, 'r') as f:
 
                 # open document to read and assign to doc
                 doc = json.load(f)
-
-                # to extract all data from news content
-                if feature_type == "all":
-                    news = doc['title'] + doc['text']
-
-                    # preprocesses news content
-                    words = preprocess(remove_emoji(news))
-                    yield words
-
-                # to extract title and text as a pair
-                elif feature_type == "pair":
-                    title = preprocess(remove_emoji(doc["title"]))
-                    body = preprocess(remove_emoji(doc['text']))
-                    yield title, body
-
-                # else you only need either title or body
+                if doc['title'] == "" or doc['text'] == "":
+                    pass
                 else:
-                    assert feature_type in doc.keys(), "feature not in the document: " + file_path
-                    # without stemming
-                    # CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
-                    #                   strip_numeric, remove_stopwords]
+                    # to extract all data from news content
+                    if feature_type == "all":
+                        news = doc['title'] + doc['text']
 
-                    feature = doc[feature_type]
-                    words = preprocess(remove_emoji(feature))
-                    # using alternative preprocessing function
-                    # words = preprocess_string(words, filters=CUSTOM_FILTERS)
-                    yield words
+                        # preprocesses news content
+                        words = preprocess(remove_emoji(news))
+                        yield words
+
+                    # to extract title and text as a pair
+                    elif feature_type == "pair":
+                        title = preprocess(remove_emoji(doc["title"]))
+                        body = preprocess(remove_emoji(doc['text']))
+                        yield title, body
+
+                    # else you only need either title or body
+                    else:
+                        assert feature_type in doc.keys(), "feature not in the document: " + file_path
+                        # without stemming
+                        # CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
+                        #                   strip_numeric, remove_stopwords]
+
+                        feature = doc[feature_type]
+                        words = preprocess(remove_emoji(feature))
+                        # using alternative preprocessing function
+                        # words = preprocess_string(words, filters=CUSTOM_FILTERS)
+                        yield words
 
     def save_in_sentence_form(self):
         """Create a json file for each news that contains their tile, body, and label"""
-        big_dict = {}
+        big_dict = []
 
         # iterating through directories
-        for file_path in self.get_list_news_files():
+        for file_path in self.list_news_path:
             with open(file_path, 'r') as f:
-
                 # loading news content into labelled sections
                 doc = json.load(f)
-                big_dict.update({remove_emoji(doc["title"]): remove_emoji(doc["text"]), "label": self.news_type})
+                if doc["title"] == "" or doc["text"] == "":
+                    pass
+                else:
+                    big_dict.append(
+                        {"title": remove_emoji(doc["title"]),
+                         "body": remove_emoji(doc["text"]),
+                         "label": str(file_path.split('/')[-3])})
         # write contents of dictionary to file
         with open("data.json", 'w+') as file:
             json.dump(big_dict, file)
 
     def get_list_news_files(self):
         """Return files path iterator of news"""
-        list_news_files = []
+        # list_news_files = []
+        for site in self.sites:
+            for news_type in self.news_types:
 
-        # accessing files through directories
-        site_folder = join(self.dirname, self.site)
-        news_path = join(site_folder, self.news_type)
+                # accessing files through directories
+                site_folder = join(self.dirname, site)
+                news_path = join(site_folder, news_type)
 
-        # only obtaining the news articles at this time
-        exclude = ["tweets", "retweets", "user_profile", "user_timeline_tweets", "user_followers", "user_following"]
+                # only obtaining the news articles at this time
+                exclude = ["tweets", "retweets", "user_profile", "user_timeline_tweets", "user_followers",
+                           "user_following"]
 
-        # iterating through directories only focusing on ones containing the news content
-        for root, dirs, files in walk(news_path, topdown=True):
-            dirs[:] = [d for d in dirs if d not in exclude]
+                # iterating through directories only focusing on ones containing the news content
+                for root, dirs, files in walk(news_path, topdown=True):
+                    dirs[:] = [d for d in dirs if d not in exclude]
 
-            # collecting all articles
-            for f in files:
-                if f.endswith(".json") and len(dirs) == 0:
-                    list_news_files.append(join(root, f))
-        return list_news_files
+                    # collecting all articles
+                    for f in files:
+                        if f.endswith(".json") and len(dirs) == 0:
+                            yield join(root, f)
+                            # list_news_files.append(join(root, f))
+        # print(len(list_news_files))
+        # return list_news_files
 
-    
+
+
 def get_ngram(n, sentence):
     """
     Function to get n grams to examine relationship between words in the news content
@@ -268,4 +290,18 @@ def division(x, y, val = 0.0):
 
 
 def unpack_pair_generator(data):
-    return [{"title": title, "body": body} for count, (title, body) in enumerate(data)]
+    pairs = []
+    try:
+        for title, body in data:
+            pairs.append({"title": title, "body": body})
+    except TypeError:
+        pass
+    return pairs
+
+# def train_test_split(data):
+#     train_set = {}
+#     test_set = {}
+#     for feature in self.count_features.keys():
+#         train, test = train_test_split(self.count_features[feature], test_size=0.2)
+#         train_set[feature] = train
+#         test_set[feature] = test
