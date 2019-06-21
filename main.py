@@ -14,6 +14,7 @@ from CountFeature import CountFeatureGenerator
 from SentimentFeature import SentimentFeatureGenerator
 from FeatureGenerator import FeatureGenerator
 from TfidfFeature import TfidfFeature
+from SvdFeature import SvdFeature
 import json
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -32,10 +33,13 @@ data.save_in_sentence_form()
 
 # tsne_similar_word_plot(model, "trump")
 
+svd = SvdFeature()
+svd.process()
+svd_results = svd.svd_results()
 # Count feature
-cfg = CountFeatureGenerator()
-cfg.process_and_save(data.get_features("pair"))
-cfg.read()
+# cfg = CountFeatureGenerator()
+# cfg.process_and_save(data.get_features("pair"))
+# cfg.read()
 
 # std = SentimentFeatureGenerator()
 # std.process_and_save()
