@@ -18,6 +18,7 @@ class TfidfFeature(object):
 
     def process(self):
         doc_list = []
+        label = []
         with open('data.json', mode="r") as f:
             data = json.load(f)
             for news in data:
