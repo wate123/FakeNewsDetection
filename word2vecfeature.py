@@ -32,21 +32,17 @@ class Word2VecFeatureGenerator(object):
     def get_norm_vectors(self, words):
         """Function to retrieve normalized vectors"""
         vectors = []
-        
-        # if empty vector no normalization needed naturally
-        if len(words) == 0:
-            return None
-        else:
-            # Pre-compute L2-normalized vectors.
-            self.model.wv.init_sims()
-            # iterating through words, normalizing their vectors
-            for word in words:
-                # ignore all empty
-                try:
-                    # saving only the normalized vectors to list
-                    vectors.append(self.model.wv.word_vec(word))
-                except KeyError:
-                    pass
+
+        # Pre-compute L2-normalized vectors.
+        self.model.wv.init_sims()
+        # iterating through words, normalizing their vectors
+        for word in words:
+            # ignore all empty
+            try:
+                # saving only the normalized vectors to list
+                vectors.append(self.model.wv.word_vec(word))
+            except KeyError:
+                pass
         return vectors
 
     def get_title_body_cos_sim(self, features):
@@ -54,16 +50,16 @@ class Word2VecFeatureGenerator(object):
         Function to get cosine similarity between a title of article and its body content
         """
 
-        title_vec = None
-        body_vec = None
+        # title_vec = []
+        # body_vec = []
+        sim_vec = []
         
         # iterating through news content's title and body
         for title, body in features:
-            
             # obtain normalized vector of title and body
             title_vec = self.get_norm_vectors(title)
             body_vec = self.get_norm_vectors(body)
+            # compare normalized vectors using cosine similarity
+            sim_vec.append(cosine_similarity(title_vec, body_vec))
 
-        # compare normalized vectors using cosine similarity
-        sim_vec = cosine_similarity(title_vec, body_vec)
-        return sim_vec
+        return np.asarray(sim_vec)[:, np.newaxis]
