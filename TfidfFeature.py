@@ -10,7 +10,7 @@ from sklearn.preprocessing import MaxAbsScaler
 from sklearn import svm
 import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
-
+from sklearn.tree import DecisionTreeClassifier
 
 
 class TfidfFeature(object):
@@ -53,6 +53,26 @@ class TfidfFeature(object):
 
         testtf_matrix = self.tf.transform(X_test)
         #testtf_matrix = ss.fit(testtf_matrix)
+        
+        
+        # decision tree should control size of trees due to large dataset
+        # max_depth min_samples_leaf should play with 
+
+        dtree = DecisionTreeClassifier(random_state=42)
+        dtree.fit(tfidf_matrix, y_train)
+
+        y_pred = dtree.predict(testtf_matrix)
+
+        score = metrics.accuracy_score(y_test, y_pred)
+        precision = metrics.precision_score(y_test, y_pred, ["fake", "real"], pos_label="real")
+        recall = metrics.recall_score(y_test, y_pred, ["fake", "real"], pos_label="real")
+        f1 = metrics.f1_score(y_test, y_pred, ["fake", "real"], pos_label="real")
+        print("accuracy: ", score)
+        print("precision: ", precision)
+        print("recall: ", recall)
+        print("f1: ", f1)
+
+        print(metrics.confusion_matrix(y_test, y_pred))
 
         # K nearest neighbors find a predefined number of training samples closest in distance to
         # the new point and predict the label from these, number of samples is user defined constant
