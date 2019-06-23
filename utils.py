@@ -100,7 +100,7 @@ def remove_emoji(text):
 
 class NewsContent(object):
     """
-    Class to access dataset by directory, site and news type (real or fake). obtain features and collect into data table
+    Class to grab news data from fakenewsnet_dataset folder
     """
 
     def __init__(self, dirname, sites, news_types):
@@ -140,13 +140,20 @@ class NewsContent(object):
     #             yield words
 
     def get_features(self, feature_type="all"):
-        """function to get specific features from news content"""
+        """
+        generator function to get specific features from news content.
+        @:param feature_type  default yield the concatenation of title and body with preprocessing one by one.
+                = pair  yield tile and body with preprocessing in pair form one by one.
+                = title or body  yield tile or body with preprocessing one by one.
+
+        """
         # reading through directory
         for file_path in self.list_news_path:
             with open(file_path, 'r') as f:
 
                 # open document to read and assign to doc
                 doc = json.load(f)
+                # skip the empty title or body
                 if doc['title'] == "" or doc['text'] == "":
                     pass
                 else:
@@ -162,7 +169,10 @@ class NewsContent(object):
                     elif feature_type == "pair":
                         title = preprocess(remove_emoji(doc["title"]))
                         body = preprocess(remove_emoji(doc['text']))
-                        yield title, body
+                        if not title or not body:
+                            pass
+                        else:
+                            yield title, body
 
                     # else you only need either title or body
                     else:
@@ -178,7 +188,7 @@ class NewsContent(object):
                         yield words
 
     def save_in_sentence_form(self):
-        """Create a json file for each news that contains their tile, body, and label"""
+        """Generate a json file for each news that contains their tile, body, and label"""
         big_dict = []
 
         # iterating through directories

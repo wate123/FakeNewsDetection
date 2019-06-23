@@ -5,7 +5,6 @@ from utils import division
 import json
 from nltk import sent_tokenize
 from utils import unpack_pair_generator
-from FeatureGenerator import FeatureGenerator
 from joblib import Parallel, delayed
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -14,8 +13,20 @@ from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 
 
+def get_article_part_count(part, ngram=1):
+    """
+    get ngram count of article title or body
+    :param part: title
+    :param ngram:
+    :return:
+    """
+    return [len(t) for t in get_ngram(ngram, part)]
+
+
 class CountFeatureGenerator(object):
-    # def __init__(self):
+    """
+    Generate Count feature and write into csv file.
+    """
     def __init__(self, name='countFeatureGenerator' ):
         # super(CountFeatureGenerator, self).__init__(name)
         # self.data = data
@@ -25,34 +36,28 @@ class CountFeatureGenerator(object):
         self.count_features_df = pd.DataFrame()
         # self.unpack_pair_generator()
 
-    def get_article_part_count(self, part, ngram=1):
-        # return [len() for count in get_ngram(ngram, self.data)]
-        # pair_dict = dict((title, body) for title, body in self.data)
-        # print(pair_dict)
-        return [len(t) for t in get_ngram(ngram, part)]
-
-    # def unpack_pair_generator(self):
-    #     for count, (title, body) in enumerate(self.data):
-    #         self.pair_news.append({"title": title, "body": body})
-
-
     def process_and_save(self, data):
+        # a list of title and body key value pairs
         self.pair_news = unpack_pair_generator(data)
         count_features = {}
         ngrams = {}
+
+        # generate count, unique count, and ratio of unique count and count (unique count / count)
+        # of title, body, and uni to tri gram
         for part in self.parts:
             for n, gram in enumerate(self.ngrams):
                 ngrams[part + "_" + gram] = \
                     list(get_ngram(n, list(map(lambda x: x[part], self.pair_news))))
                 count_features["count_" + part + "_" + gram] = \
-                    self.get_article_part_count(list(map(lambda x: x[part], self.pair_news)), n)
+                    get_article_part_count(list(map(lambda x: x[part], self.pair_news)), n)
                 count_features["count_unique_" + part + "_" + gram] = \
-                    self.get_article_part_count(list(map(lambda x: set(x[part]), self.pair_news)), n)
+                    get_article_part_count(list(map(lambda x: set(x[part]), self.pair_news)), n)
                 count_features["ratio_of_unique_" + part + "_" + gram] = \
                     list(map(lambda x, y: division(x, y),
                              count_features["count_unique_" + part + "_" + gram],
                              count_features["count_" + part + "_" + gram]))
-
+        # count of ngram title in body,
+        # ratio of ngram title in body (count of ngram title in body / count of ngram title)
         for gram in self.ngrams:
             count_features["count_of_title_"+gram+"_in_body"] = \
                 list(map(lambda x, y:
@@ -63,6 +68,7 @@ class CountFeatureGenerator(object):
                          count_features["count_of_title_"+gram+"_in_body"],
                          count_features["count_title_"+gram]))
 
+        # get label of each news and count number of sentence in title and body
         with open("data.json", mode="r") as f:
             data = json.load(f)
             label = []
@@ -100,7 +106,11 @@ class CountFeatureGenerator(object):
         # with open("count_feature.json", mode="w+") as f:
         #     json.dump(self.count_features, indent=4, fp=f)
 
+
     def read(self):
+        """
+        read directly from feature file and split train test set and make prediction using 20% test set
+        """
         df = pd.read_csv('count_feature.csv')
         X = df.drop("label", axis=1)
         y = df["label"]

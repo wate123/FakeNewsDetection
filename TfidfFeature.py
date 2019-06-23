@@ -3,7 +3,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
-from scipy.sparse.csr import csr_matrix
+# from scipy.sparse.csr import csr_matrix
 import json
 from utils import *
 from sklearn.preprocessing import MaxAbsScaler
