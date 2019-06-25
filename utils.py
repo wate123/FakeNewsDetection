@@ -115,7 +115,6 @@ class NewsContent(object):
         else:
             self.sites = sites
             self.news_types = news_types
-        self.news_type = ""
         self.list_news_path = list(self.get_list_news_files())
         # self.feature_type = feature_type
 
@@ -169,10 +168,11 @@ class NewsContent(object):
                     elif feature_type == "pair":
                         title = preprocess(remove_emoji(doc["title"]))
                         body = preprocess(remove_emoji(doc['text']))
-                        if not title or not body:
-                            pass
-                        else:
-                            yield title, body
+                        yield title, body
+                        # if not title or not body:
+                        #     pass
+                        # else:
+                        #     yield title, body
 
                     # else you only need either title or body
                     else:
@@ -299,14 +299,14 @@ def division(x, y, val = 0.0):
     return val
 
 
-def unpack_pair_generator(data):
-    pairs = []
-    try:
-        for title, body in data:
-            pairs.append({"title": title, "body": body})
-    except TypeError:
-        pass
-    return pairs
+# def unpack_pair_generator(data):
+#     pairs = []
+#     try:
+#         for title, body in data:
+#             pairs.append({"title": title, "body": body})
+#     except TypeError:
+#         pass
+#     return pairs
 
 # def train_test_split(data):
 #     train_set = {}
