@@ -5,7 +5,7 @@ from os.path import join, exists
 import nltk
 from gensim.models.phrases import Phrases, Phraser
 # from spellchecker import SpellChecker
-
+import pandas as pd
 import matplotlib.pyplot as plt
 from gensim.parsing.preprocessing import preprocess_string, strip_tags, strip_punctuation, strip_multiple_whitespaces, \
     strip_numeric, remove_stopwords
@@ -38,7 +38,7 @@ def preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stop
     token_pattern = re.compile(token_pattern, flags=re.UNICODE)
 
     # tokenizing and making letters lowercase from data
-    tokens = [x.lower() for x in token_pattern.findall(line)]
+    tokens = [remove_emoji(x.lower()) for x in token_pattern.findall(str(line))]
     tokens_stemmed = tokens
 
     # set to true so text is preprocessed
@@ -146,6 +146,9 @@ class NewsContent(object):
                 = title or body  yield tile or body with preprocessing one by one.
 
         """
+        # if exists(path="data.csv"):
+        #     return pd.read_csv("data.csv")
+        # else:
         # reading through directory
         for file_path in self.list_news_path:
             with open(file_path, 'r') as f:
@@ -161,13 +164,13 @@ class NewsContent(object):
                         news = doc['title'] + doc['text']
 
                         # preprocesses news content
-                        words = preprocess(remove_emoji(news))
+                        words = preprocess(news)
                         yield words
 
                     # to extract title and text as a pair
                     elif feature_type == "pair":
-                        title = preprocess(remove_emoji(doc["title"]))
-                        body = preprocess(remove_emoji(doc['text']))
+                        title = preprocess(doc["title"])
+                        body = preprocess(doc['text'])
                         yield title, body
                         # if not title or not body:
                         #     pass
@@ -182,7 +185,7 @@ class NewsContent(object):
                         #                   strip_numeric, remove_stopwords]
 
                         feature = doc[feature_type]
-                        words = preprocess(remove_emoji(feature))
+                        words = preprocess(feature)
                         # using alternative preprocessing function
                         # words = preprocess_string(words, filters=CUSTOM_FILTERS)
                         yield words
@@ -204,8 +207,10 @@ class NewsContent(object):
                          "body": remove_emoji(doc["text"]),
                          "label": str(file_path.split('/')[-3])})
         # write contents of dictionary to file
-        with open("data.json", 'w+') as file:
-            json.dump(big_dict, file)
+        print(len(big_dict))
+        pd.DataFrame(big_dict).to_csv("data.csv", index=False)
+        # with open("data.json", 'w+') as file:
+        #     json.dump(big_dict, file)
 
     def get_list_news_files(self):
         """Return files path iterator of news"""

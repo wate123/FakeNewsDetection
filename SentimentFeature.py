@@ -58,7 +58,7 @@ class SentimentFeatureGenerator(object):
         print("Article title Done!")
         print("Save into title_sentiment_feature.csv")
         print()
-        print("Generate Title Sentiment Features")
+        print("Generate Body Sentiment Features")
         body_sentiment_feature_df["body_sent"] = self.pair_news["body"].apply(lambda x: sent_tokenize(x))
         body_sentiment_feature_df = pd.concat(
             [body_sentiment_feature_df,
@@ -68,7 +68,7 @@ class SentimentFeatureGenerator(object):
             columns={'compound': 'body_compound', 'neg': 'body_neg', 'neu': 'body_neu', 'pos': 'body_pos'},
             inplace=True)
         body_sentiment_feature_df["label"] = self.pair_news["label"].tolist()
-        body_sentiment_feature_df.drop("body_sent", axis=1).to_csv("body_sentiment_feature.csv")
+        body_sentiment_feature_df.drop("body_sent", axis=1).to_csv("body_sentiment_feature.csv", index=False)
         print("Article body Done!")
         print("Save into body_sentiment_feature.csv")
 
@@ -77,23 +77,26 @@ class SentimentFeatureGenerator(object):
         #     json.dump(self.sentiment_feature, indent=4, fp=f)
     def read(self):
         """
-        TODO not sure how the sentiment feature feed into model
         :return:
         """
-        df = pd.read_csv('title_sentiment_feature.csv', index_col=False)
-        X = df.drop("label", axis=1).values
-        y = df["label"].values
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
-        clf = LogisticRegression(solver="saga")
+        title_sen_feat = pd.read_csv('title_sentiment_feature.csv', index_col=False).drop("label", axis=1)
+        body_sen_feat = pd.read_csv('body_sentiment_feature.csv', index_col=False).drop("label", axis=1)
 
-        model = clf.fit(X_train, y_train)
-
-        result = clf.predict(X_test)
-        score = metrics.accuracy_score(y_test, result)
-        precision = metrics.precision_score(y_test, result, ["fake", "real"], pos_label="real")
-        recall = metrics.recall_score(y_test, result, ["fake", "real"], pos_label="real")
-        f1 = metrics.f1_score(y_test, result, ["fake", "real"], pos_label="real")
-        print("accuracy: ", score)
-        print("precision: ", precision)
-        print("recall: ", recall)
-        print("f1: ", f1)
+        # X = df.drop("label", axis=1).values
+        return pd.merge(title_sen_feat, body_sen_feat, left_index=True, right_index=True)
+        # return pd.concat([title_sen_feat, body_sen_feat], axis=1)
+        # y = df["label"].values
+        # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
+        # clf = LogisticRegression(solver="saga")
+        #
+        # model = clf.fit(X_train, y_train)
+        #
+        # result = clf.predict(X_test)
+        # score = metrics.accuracy_score(y_test, result)
+        # precision = metrics.precision_score(y_test, result, ["fake", "real"], pos_label="real")
+        # recall = metrics.recall_score(y_test, result, ["fake", "real"], pos_label="real")
+        # f1 = metrics.f1_score(y_test, result, ["fake", "real"], pos_label="real")
+        # print("accuracy: ", score)
+        # print("precision: ", precision)
+        # print("recall: ", recall)
+        # print("f1: ", f1)

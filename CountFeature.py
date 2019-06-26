@@ -12,16 +12,19 @@ from sklearn import metrics, utils
 from sklearn.preprocessing import StandardScaler, scale
 from sklearn.model_selection import GridSearchCV as GCV, validation_curve, train_test_split, ShuffleSplit, learning_curve
 import matplotlib.pyplot as plt
+from utils import preprocess, remove_emoji
 from joblib import dump, load
 
-def get_article_part_count(part, ngram=1):
+def get_article_part_count(part, unique=False):
     """
     get ngram count of article title or body
     :param part: title
     :param ngram:
     :return:
     """
-    return [len(t) for t in get_ngram(ngram, part)]
+    if unique:
+        return [len(set(t)) for t in part]
+    return [len(t) for t in part]
 
 
 class CountFeatureGenerator(object):
@@ -38,58 +41,65 @@ class CountFeatureGenerator(object):
         # self.unpack_pair_generator()
 
     def process_and_save(self):
+        print("Generating Count Features")
         # a list of title and body key value pairs
-        with open("data.json", mode="r") as f:
-            self.pair_news = json.load(f)
+        self.pair_news = pd.read_csv("data.csv")
+        # print(len(self.pair_news))
+        # with open("data.json", mode="r") as f:
+        #     self.pair_news = json.load(f)
 
-        count_features = {}
         ngrams = {}
 
         # generate count, unique count, and ratio of unique count and count (unique count / count)
         # of title, body, and uni to tri gram
         for part in self.parts:
+            unigram = self.pair_news[part].astype(str).apply(preprocess)
             for n, gram in enumerate(self.ngrams):
-                ngrams[part + "_" + gram] = \
-                    list(get_ngram(n, list(map(lambda x: x[part], self.pair_news))))
-                count_features["count_" + part + "_" + gram] = \
-                    get_article_part_count(list(map(lambda x: x[part], self.pair_news)), n)
-                count_features["count_unique_" + part + "_" + gram] = \
-                    get_article_part_count(list(map(lambda x: set(x[part]), self.pair_news)), n)
-                count_features["ratio_of_unique_" + part + "_" + gram] = \
+                # print(self.pair_news[part])
+                ngrams[part + "_" + gram] = list(get_ngram(n, unigram))
+                # ngrams[part + "_" + gram] = \
+                #     list(get_ngram(n, list(map(lambda x: x, self.pair_news[part]))))
+                # count_features["count_" + part + "_" + gram] = get_article_part_count(list)
+                self.count_features_df["count_" + part + "_" + gram] = get_article_part_count(ngrams[part + "_" + gram])
+                self.count_features_df["count_unique_" + part + "_" + gram] = \
+                    get_article_part_count(ngrams[part + "_" + gram], unique=True)
+                self.count_features_df["ratio_of_unique_" + part + "_" + gram] = \
                     list(map(lambda x, y: division(x, y),
-                             count_features["count_unique_" + part + "_" + gram],
-                             count_features["count_" + part + "_" + gram]))
+                             self.count_features_df["count_unique_" + part + "_" + gram],
+                             self.count_features_df["count_" + part + "_" + gram]))
         # count of ngram title in body,
         # ratio of ngram title in body (count of ngram title in body / count of ngram title)
         for gram in self.ngrams:
-            count_features["count_of_title_"+gram+"_in_body"] = \
+            self.count_features_df["count_of_title_"+gram+"_in_body"] = \
                 list(map(lambda x, y:
                          sum([1. for word in x if word in set(y)]),
                          ngrams["title_"+gram], ngrams["body_"+gram]))
-            count_features["ratio_of_title_" + gram + "_in_body"] = \
+            self.count_features_df["ratio_of_title_" + gram + "_in_body"] = \
                 list(map(division,
-                         count_features["count_of_title_"+gram+"_in_body"],
-                         count_features["count_title_"+gram]))
+                         self.count_features_df["count_of_title_"+gram+"_in_body"],
+                         self.count_features_df["count_title_"+gram]))
 
         # get label of each news and count number of sentence in title and body
         # with open("data.json", mode="r") as f:
         #     data = json.load(f)
-        label = []
-        len_sent_title = []
-        len_sent_body = []
-        for news in self.pair_news:
-            label.append(news["label"])
-            len_sent_title.append(len(sent_tokenize(news["title"])))
-            len_sent_body.append(len(sent_tokenize(news["body"])))
-        count_features["label"] = label
-        count_features["len_sent_title"] = len_sent_title
-        count_features["len_sent_body"] = len_sent_body
+        # label = self.pair_news["label"]
+        self.count_features_df["len_sent_title"] = self.pair_news["title"].astype(str).apply(lambda x: len(x), sent_tokenize)
+        self.count_features_df["len_sent_body"] = self.pair_news["body"].astype(str).apply(lambda x: len(x), sent_tokenize)
+        # for news in self.pair_news:
+        #     # label.append(news["label"])
+        #     len_sent_title.append(len(sent_tokenize(news["title"])))
+        #     len_sent_body.append(len(sent_tokenize(news["body"])))
+        # count_features["label"] = label
+        # count_features["len_sent_title"] = len_sent_title
+        # count_features["len_sent_body"] = len_sent_body
             # count_features["label"] = [news["label"] for news in data]
             # count_features["len_sent_title"] = [len(sent_tokenize(news["title"])) for news in data]
             # count_features["len_sent_body"] = [len(sent_tokenize(body))for _, body in data]
-        self.count_features_df = pd.DataFrame.from_dict(count_features)
-        pd.DataFrame.to_csv(self.count_features_df, "count_feature.csv")
-
+        # self.count_features_df = pd.DataFrame.from_dict(count_features)
+        self.count_features_df["label"] = self.pair_news["label"]
+        self.count_features_df.to_csv("count_feature.csv", index=False)
+        # pd.DataFrame.to_csv(self.count_features_df, "count_feature.csv")
+        print("Done! save into count_feature.csv")
         # pd.DataFrame.to_csv("")
         # self.count_features["len_sent_title"] = [len(sent_tokenize(" ".join(news["title"]))) for news in self.pair_news]
         # self.count_features["len_sent_body"] = [len(sent_tokenize(" ".join(news["body"]))) for news in self.pair_news]
@@ -110,37 +120,37 @@ class CountFeatureGenerator(object):
         #     json.dump(self.count_features, indent=4, fp=f)
 
 
-    def read(self, trained):
+    def read(self):
         """
         read directly from feature file and split train test set and make prediction using 20% test set
         """
-        df = pd.read_csv('count_feature.csv', index_col=False)
-        X = scale(df.drop("label", axis=1).values)
-        print("shape: ", X.shape)
-        # X = df.drop("label", axis=1).values
-        y = df["label"].values
-        X, y = utils.shuffle(X, y)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
-
-        grid_C = [0.5 * i for i in range(1, 21)]
-        parameters = {"tol": [5e-4], "C": grid_C, "random_state":[1],
-                      "solver": ["newton-cg", "sag", "saga", "lbfgs"],
-                      "max_iter": [4000], "multi_class": ["multinomial", "ovr", "auto"]}
-
-        clf = LogisticRegression(tol=0.0005, C=8.5, max_iter=4000, multi_class='multinomial', random_state=1, solver='newton-cg' )
-        # if trained:
-        #     clf = load('logreg_count_feature.joblib')
-        # else:
-        #     clf = GCV(LogisticRegression(), parameters, cv=10, n_jobs=-1)
-        #     dump(clf, 'logreg_count_feature.joblib')
-
-        clf.fit(X_train, y_train)
-
-        y_predict = clf.predict(X_test)
-        tpfptnfn = metrics.confusion_matrix(y_test, y_predict)
-        preRecF1 = metrics.classification_report(y_test, y_predict)
-        # print(clf.best_params_)
-        print(preRecF1)
+        return pd.read_csv('count_feature.csv', index_col=False).drop("label", axis=1)
+        # X = scale(df.drop("label", axis=1).values)
+        # print("shape: ", X.shape)
+        # # X = df.drop("label", axis=1).values
+        # y = df["label"].values
+        # X, y = utils.shuffle(X, y)
+        # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
+        #
+        # grid_C = [0.5 * i for i in range(1, 21)]
+        # parameters = {"tol": [5e-4], "C": grid_C, "random_state":[1],
+        #               "solver": ["newton-cg", "sag", "saga", "lbfgs"],
+        #               "max_iter": [4000], "multi_class": ["multinomial", "ovr", "auto"]}
+        #
+        # clf = LogisticRegression(tol=0.0005, C=8.5, max_iter=4000, multi_class='multinomial', random_state=1, solver='newton-cg' )
+        # # if trained:
+        # #     clf = load('logreg_count_feature.joblib')
+        # # else:
+        # #     clf = GCV(LogisticRegression(), parameters, cv=10, n_jobs=-1)
+        # #     dump(clf, 'logreg_count_feature.joblib')
+        #
+        # clf.fit(X_train, y_train)
+        #
+        # y_predict = clf.predict(X_test)
+        # tpfptnfn = metrics.confusion_matrix(y_test, y_predict)
+        # preRecF1 = metrics.classification_report(y_test, y_predict)
+        # # print(clf.best_params_)
+        # print(preRecF1)
         # plot_learning_curve(clf, "Learning curve", X_train, y_train, n_jobs=-1, cv=10)
 
 
