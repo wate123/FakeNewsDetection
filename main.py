@@ -19,12 +19,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 # call NewsContent class to preprocess/tokenize the news content
-data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
-save_as_line_sentence(data.get_features(), "news_ls.txt")
-data.save_in_sentence_form()
+# data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
+# save_as_line_sentence(data.get_features(), "news_corpus.txt")
+# data.save_in_sentence_form()
 
-# w2v = Word2VecFeatureGenerator(LineSentence("news_ls.txt"))
+# w2v = Word2VecFeatureGenerator(LineSentence("news_corpus.txt"))
 # w2v.process_and_save(data.get_features("pair"))
+
 # w2v.read()
 # sim_vec = w2v.get_title_body_cos_sim()
 
@@ -35,13 +36,14 @@ data.save_in_sentence_form()
 
 # tsne_similar_word_plot(model, "trump")
 
-svd = SvdFeature()
-svd.process()
-svd_results = svd.svd_results()
+# svd = SvdFeature()
+# svd.process()
+# svd_results = svd.svd_results()
 # Count feature
-# cfg = CountFeatureGenerator()
-# cfg.process_and_save(data.get_features("pair"))
-# cfg.read()
+cfg = CountFeatureGenerator()
+# cfg.process_and_save()
+cfg.read(trained=False)
+
 
 # std = SentimentFeatureGenerator()
 # std.process_and_save()

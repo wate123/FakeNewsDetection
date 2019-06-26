@@ -2,7 +2,7 @@ from nltk import sent_tokenize
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import json
 import statistics
-from utils import unpack_pair_generator, division
+from utils import division
 from collections import defaultdict
 import pandas as pd
 import numpy as np
@@ -54,7 +54,7 @@ class SentimentFeatureGenerator(object):
             columns={'compound': 'title_compound', 'neg': 'title_neg', 'neu': 'title_neu', 'pos': 'title_pos'},
             inplace=True)
         title_sentiment_feature_df["label"] = self.pair_news["label"].tolist()
-        title_sentiment_feature_df.drop("title_sent", axis=1).to_csv("title_sentiment_feature.csv")
+        title_sentiment_feature_df.drop("title_sent", axis=1).to_csv("title_sentiment_feature.csv", index=False)
         print("Article title Done!")
         print("Save into title_sentiment_feature.csv")
         print()
@@ -80,9 +80,9 @@ class SentimentFeatureGenerator(object):
         TODO not sure how the sentiment feature feed into model
         :return:
         """
-        df = pd.read_csv('title_sentiment_feature.csv')
-        X = df.drop("label", axis=1)
-        y = df["label"]
+        df = pd.read_csv('title_sentiment_feature.csv', index_col=False)
+        X = df.drop("label", axis=1).values
+        y = df["label"].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
         clf = LogisticRegression(solver="saga")
 
