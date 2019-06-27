@@ -66,7 +66,7 @@ class SvdFeature(object):
         y = df["label"]
 
         # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3, random_state=0)[:50]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3, random_state=0)
+        # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.3, random_state=0)
 
         # The cost is proportional to the square of the value of the weight coefficients
         # penalty of l2 as regularization has no feature selection, computationally efficient, nonsparse output
@@ -77,21 +77,21 @@ class SvdFeature(object):
         # multiclass is ovr (one vs rest) as we only need binary classification
         #
 
-        wparameters = {'C': [4], 'penalty': ['l2'], 'tol': [5e-4], 'random_state': [1], 'multi_class': ['multinomial'],
-                       'max_iter': [1000], 'solver': ['newton-cg']}
-
-        logreg = LogisticRegression()
-
-        clf = GCV(logreg, wparameters, cv=10, n_jobs=-1)
-
-        #logreg.fit(X_train, y_train)
-        clf.fit(X_train, y_train)
-
-        # y_pred = logreg.predict(X_test)
-        y_pred = clf.predict(X_test)
-
-        print(metrics.confusion_matrix(y_test, y_pred))
-        print(metrics.classification_report(y_test, y_pred))
+        # wparameters = {'C': [4], 'penalty': ['l2'], 'tol': [5e-4], 'random_state': [1], 'multi_class': ['multinomial'],
+        #                'max_iter': [1000], 'solver': ['newton-cg']}
+        #
+        # logreg = LogisticRegression()
+        #
+        # clf = GCV(logreg, wparameters, cv=10, n_jobs=-1)
+        #
+        # #logreg.fit(X_train, y_train)
+        # clf.fit(X_train, y_train)
+        #
+        # # y_pred = logreg.predict(X_test)
+        # y_pred = clf.predict(X_test)
+        #
+        # print(metrics.confusion_matrix(y_test, y_pred))
+        # print(metrics.classification_report(y_test, y_pred))
 
 
     '''

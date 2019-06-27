@@ -238,6 +238,31 @@ class NewsContent(object):
         # print(len(list_news_files))
         # return list_news_files
 
+        def get_list_twitter_files(self):
+            """Return files path iterator of news"""
+            list_twitter_files = []
+            for site in self.sites:
+                for news_type in self.news_types:
+
+                    # accessing files through directories
+                    site_folder = join(self.dirname, site)
+                    news_path = join(site_folder, news_type)
+
+                    # only obtaining the tweets/retweets at this time
+                    exclude = ["news", "user_profile", "user_timeline_tweets", "user_followers",
+                               "user_following"]
+
+                    # iterating through directories only focusing on ones containing the news content
+                    for root, dirs, files in walk(news_path, topdown=True):
+                        dirs[:] = [d for d in dirs if d not in exclude]
+
+                        # collecting all articles
+                        for f in files:
+                            if f.endswith(".json") and len(dirs) == 0:
+                                yield join(root, f)
+                                list_twitter_files.append(join(root, f))
+            print(len(list_twitter_files))
+            # return list_news_files
 
 
 def get_ngram(n, sentence):
