@@ -20,7 +20,7 @@ class Word2VecFeatureGenerator(object):
     Class that builds a Word2Vec model (either pre-trained or not) from the news content
     """
     
-    def __init__(self, corpus, pretrain=False):
+    def __init__(self, corpus, pretrain=True):
         """
         Initializer function that takes a corpus and specification of whether to use a pretrained model or not
         """
