@@ -19,9 +19,9 @@ class SvdFeature(object):
         Initializer function that creates SVD model with 100 dimensions and a Tf-Idf Vectorizer
         """
 
-        self.svd_model = TruncatedSVD(n_components=100, random_state=42)
+        self.svd_model = TruncatedSVD(n_components=100, random_state=1)
         self.normalizer = Normalizer(copy=False)
-        #self.doc_list = []
+
         self.tf = TfidfVectorizer(strip_accents='unicode', stop_words='english', min_df=2, max_df=.5)
         # to reduce dimension min_df=.10, max_df=.75
 
@@ -34,13 +34,15 @@ class SvdFeature(object):
 
         doc_list = []
         label = []
-        with open('data.json', mode="r") as f:
-            data = json.load(f)
-            for news in data:
-               doc_list.append(news['title'] + ". " + news['body'])
-               label.append(news['label'])
+        data = pd.read_csv("data.csv")
+        doc_list = data['title'].map(str) + data['body']
+        # with open('data.json', mode="r") as f:
+        #     data = json.load(f)
+        #     for news in data:
+        #        doc_list.append(news['title'] + ". " + news['body'])
+        #        label.append(news['label'])
 
-        tfidf_matrix = self.tf.fit_transform(doc_list)
+        tfidf_matrix = self.tf.fit_transform(doc_list.values)
 
         X = tfidf_matrix.toarray()
 
@@ -57,7 +59,7 @@ class SvdFeature(object):
 
         svd_matrix = self.svd_model.fit_transform(tfidf_matrix)
         svd_matrix_df = pd.DataFrame(svd_matrix)
-        svd_matrix_df["label"] = pd.read_json("data.json")["label"]
+        svd_matrix_df["label"] = pd.read_csv("data.csv")["label"]
         svd_matrix_df.to_csv("svd_feature.csv", index=False)
 
         print(svd_matrix.shape)
