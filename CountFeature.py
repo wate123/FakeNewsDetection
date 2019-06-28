@@ -20,6 +20,9 @@ class CountFeatureGenerator(object):
     Generate Count feature and write into csv file.
     """
     def __init__(self, name='countFeatureGenerator' ):
+        """
+        Initializer that constructs components of count feature
+        """
         # super(CountFeatureGenerator, self).__init__(name)
         # self.data = data
         self.pair_news = {}
@@ -29,6 +32,9 @@ class CountFeatureGenerator(object):
         # self.unpack_pair_generator()
 
     def process_and_save(self):
+        """
+        Function that counts ngrams, unique count and ratio of the two
+        """
         print("Generating Count Features")
         # a list of title and body key value pairs
         self.pair_news = pd.read_csv("data.csv")
@@ -38,9 +44,13 @@ class CountFeatureGenerator(object):
         # generate count, unique count, and ratio of unique count and count (unique count / count)
         # of title, body, and uni to tri gram
         for part in self.parts:
+            #preprocess data
             unigram = self.pair_news[part].astype(str).apply(preprocess)
+
             for n, gram in enumerate(self.ngrams):
                 ngrams[part + "_" + gram] = list(get_ngram(n, unigram))
+
+                #store results in data frame
                 self.count_features_df["count_" + part + "_" + gram] = get_article_part_count(ngrams[part + "_" + gram])
                 self.count_features_df["count_unique_" + part + "_" + gram] = \
                     get_article_part_count(ngrams[part + "_" + gram], unique=True)
@@ -60,10 +70,13 @@ class CountFeatureGenerator(object):
                          self.count_features_df["count_of_title_"+gram+"_in_body"],
                          self.count_features_df["count_title_"+gram]))
 
+        # length of title and body of articles stored in data frame
         self.count_features_df["len_sent_title"] = self.pair_news["title"].astype(str).apply(lambda x: len(x), sent_tokenize)
         self.count_features_df["len_sent_body"] = self.pair_news["body"].astype(str).apply(lambda x: len(x), sent_tokenize)
 
         self.count_features_df["label"] = self.pair_news["label"]
+
+        # remove index to ensure model does not use during training or testing
         self.count_features_df.to_csv("count_feature.csv", index=False)
         print("Done! save into count_feature.csv")
 

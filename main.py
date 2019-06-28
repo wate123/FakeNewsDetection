@@ -22,7 +22,8 @@ random.seed(1)
 
 # call NewsContent class to preprocess/tokenize the news content
 # data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
-data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
+data = NewsContent('../FakeNewsDetection/fakenewsnet_dataset', ['gossipcop'], ['fake', 'real'])
+# data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
 save_as_line_sentence(data.get_features(), "news_corpus.txt")
 data.save_in_sentence_form()
 

@@ -35,7 +35,7 @@ class Word2VecFeatureGenerator(object):
         """
         Function to retrieve normalized vectors
         :param words: all words in title or body
-        :return:
+        :return: numpy array
         """
         vectors = []
         # iterating through words, normalizing their vectors
@@ -52,6 +52,12 @@ class Word2VecFeatureGenerator(object):
         return np.array(vectors)
 
     def cosine_sim(self, x, y):
+        """
+        Function to compute cosine similarity
+        :param x:
+        :param y:
+        :return:
+        """
         try:
             if type(x) is np.ndarray: x = x.reshape(1, -1)  # get rid of the warning
             if type(y) is np.ndarray: y = y.reshape(1, -1)
@@ -92,9 +98,8 @@ class Word2VecFeatureGenerator(object):
 
     def process_and_save(self, pair_data):
         """
-        TODO Incomplete
+        Function that uses Word2Vec feature to embed data and store in data frame then write to csv
         :param pair_data: title and body pairs
-        :return:
         """
         print("Generating Word2Vec Features")
         w2v_feature_df = pd.DataFrame(self.get_title_body_cos_sim(pair_data))
@@ -103,4 +108,8 @@ class Word2VecFeatureGenerator(object):
         print("Done! save into w2v_features.csv")
 
     def read(self):
+        """
+        Function that reads directly from file
+        :return: word2vec results without index to ensure model doesn't use index when training or testing
+        """
         return pd.read_csv('w2v_feature.csv', index_col=False).drop("label", axis=1)
