@@ -50,7 +50,7 @@ class SvdFeature(object):
 
 
 
-    def process_svd(self):
+    def process_and_save(self):
         """
         Function to use SVD (for Latent Semantic Analysis) to decompose the term-document matrix from Tf Idf
         """
