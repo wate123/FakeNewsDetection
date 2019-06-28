@@ -1,14 +1,6 @@
 from nltk import sent_tokenize
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-import json
-import statistics
-from utils import division
-from collections import defaultdict
 import pandas as pd
-import numpy as np
-from sklearn import metrics
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
 
 
 class SentimentFeatureGenerator(object):
@@ -29,9 +21,6 @@ class SentimentFeatureGenerator(object):
         :return: average of polarity scores
         """
         results = [self.sid.polarity_scores(sentence)for sentence in sentences]
-        # print(np.mean(results, axis=0).reshape(-1).shape)
-        # print(np.reshape(np.mean(results, axis=0),(1, 4)))
-        # result = np.reshape(np.mean(results, axis=0), (1, 4))
         return pd.DataFrame(results).mean()
 
     def process_and_save(self):
@@ -40,16 +29,15 @@ class SentimentFeatureGenerator(object):
         :return:
         """
         print("Generate Title Sentiment Features")
-        self.pair_news = pd.read_json("data.json")
+        self.pair_news = pd.read_csv("data.csv")
 
         title_sentiment_feature_df = pd.DataFrame()
         body_sentiment_feature_df = pd.DataFrame()
 
-        title_sentiment_feature_df["title_sent"] = self.pair_news["title"].apply(lambda x: sent_tokenize(x))
+        title_sentiment_feature_df["title_sent"] = self.pair_news["title"].apply(lambda x: sent_tokenize(str(x)))
         title_sentiment_feature_df = pd.concat(
             [title_sentiment_feature_df,
-             title_sentiment_feature_df["title_sent"]
-                 .apply(lambda x: self.compute_sentiment(x))], axis=1)
+             title_sentiment_feature_df["title_sent"].apply(lambda x: self.compute_sentiment(x))], axis=1)
         title_sentiment_feature_df.rename(
             columns={'compound': 'title_compound', 'neg': 'title_neg', 'neu': 'title_neu', 'pos': 'title_pos'},
             inplace=True)
@@ -59,7 +47,7 @@ class SentimentFeatureGenerator(object):
         print("Save into title_sentiment_feature.csv")
         print()
         print("Generate Body Sentiment Features")
-        body_sentiment_feature_df["body_sent"] = self.pair_news["body"].apply(lambda x: sent_tokenize(x))
+        body_sentiment_feature_df["body_sent"] = self.pair_news["body"].apply(lambda x: sent_tokenize(str(x)))
         body_sentiment_feature_df = pd.concat(
             [body_sentiment_feature_df,
              body_sentiment_feature_df["body_sent"]
@@ -72,9 +60,6 @@ class SentimentFeatureGenerator(object):
         print("Article body Done!")
         print("Save into body_sentiment_feature.csv")
 
-
-        # with open('sentiment_feature.json', mode="w+") as f:
-        #     json.dump(self.sentiment_feature, indent=4, fp=f)
     def read(self):
         """
         :return:
@@ -82,21 +67,4 @@ class SentimentFeatureGenerator(object):
         title_sen_feat = pd.read_csv('title_sentiment_feature.csv', index_col=False).drop("label", axis=1)
         body_sen_feat = pd.read_csv('body_sentiment_feature.csv', index_col=False).drop("label", axis=1)
 
-        # X = df.drop("label", axis=1).values
         return pd.merge(title_sen_feat, body_sen_feat, left_index=True, right_index=True)
-        # return pd.concat([title_sen_feat, body_sen_feat], axis=1)
-        # y = df["label"].values
-        # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
-        # clf = LogisticRegression(solver="saga")
-        #
-        # model = clf.fit(X_train, y_train)
-        #
-        # result = clf.predict(X_test)
-        # score = metrics.accuracy_score(y_test, result)
-        # precision = metrics.precision_score(y_test, result, ["fake", "real"], pos_label="real")
-        # recall = metrics.recall_score(y_test, result, ["fake", "real"], pos_label="real")
-        # f1 = metrics.f1_score(y_test, result, ["fake", "real"], pos_label="real")
-        # print("accuracy: ", score)
-        # print("precision: ", precision)
-        # print("recall: ", recall)
-        # print("f1: ", f1)
