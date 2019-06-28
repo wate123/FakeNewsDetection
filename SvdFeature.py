@@ -4,9 +4,9 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV as GCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from utils import *
-
 
 
 class SvdFeature(object):
@@ -14,18 +14,15 @@ class SvdFeature(object):
     Class that builds a Tf-Idf model and uses SVD to compress the sparse matrix
     """
 
-    def __init__ (self):
+    def __init__(self):
         """
         Initializer function that creates SVD model with 100 dimensions and a Tf-Idf Vectorizer
         """
 
         self.svd_model = TruncatedSVD(n_components=100, random_state=1)
         self.normalizer = Normalizer(copy=False)
-
         self.tf = TfidfVectorizer(strip_accents='unicode', stop_words='english', min_df=2, max_df=.5)
         # to reduce dimension min_df=.10, max_df=.75
-
-
 
     def process_tfidf(self):
         """
@@ -48,8 +45,6 @@ class SvdFeature(object):
 
         return X
 
-
-
     def process_and_save(self):
         """
         Function to use SVD (for Latent Semantic Analysis) to decompose the term-document matrix from Tf Idf
@@ -64,13 +59,12 @@ class SvdFeature(object):
 
         print(svd_matrix.shape)
 
-
     def read(self):
         """
         Function to read the results from SVD (and Tf Idf) and classify using logistic regression
         """
 
-        df = pd.read_csv("svd_feature.csv").drop("label", axis=1)
+        df = pd.read_csv("svd_feature.csv")
         # X = df.drop("label", axis=1)
         # y = df["label"]
 
@@ -101,8 +95,6 @@ class SvdFeature(object):
         #
         # print(metrics.confusion_matrix(y_test, y_pred))
         # print(metrics.classification_report(y_test, y_pred))
-
-
 
     def get_tfidf_scores(self):
         """
