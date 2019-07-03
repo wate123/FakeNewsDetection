@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV as GCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from utils import *
-
+from sklearn.decomposition import NMF
 
 class SvdFeature(object):
     """
@@ -50,21 +50,27 @@ class SvdFeature(object):
         Function to use SVD (for Latent Semantic Analysis) to decompose the term-document matrix from Tf Idf
         """
 
+        print("Generating SVD feature")
+        # tfidf = TfidfFeature()
         tfidf_matrix = self.process_tfidf()
 
+        # model = NMF(n_components=50, init='random', random_state=1)
+        # nmf_matrix = model.fit_transform(tfidf_matrix)
         svd_matrix = self.svd_model.fit_transform(tfidf_matrix)
+
         svd_matrix_df = pd.DataFrame(svd_matrix)
         svd_matrix_df["label"] = pd.read_csv("data.csv")["label"]
         svd_matrix_df.to_csv("svd_feature.csv", index=False)
+        # print(svd_matrix.shape)
 
-        print(svd_matrix.shape)
+        print("Done! Save into svd_featur.csv")
 
     def read(self):
         """
         Function to read the results from SVD (and Tf Idf) and classify using logistic regression
         """
 
-        df = pd.read_csv("svd_feature.csv")
+        return pd.read_csv("svd_feature.csv").drop("label", axis=1)
         # X = df.drop("label", axis=1)
         # y = df["label"]
 
