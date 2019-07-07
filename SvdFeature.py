@@ -1,4 +1,4 @@
-from sklearn.decomposition import TruncatedSVD
+from sklearn.decomposition import TruncatedSVD, NMF
 from sklearn.preprocessing import Normalizer
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -52,8 +52,12 @@ class SvdFeature(object):
 
         tfidf_matrix = self.process_tfidf()
 
+
+        nmf_matrix = NMF(n_components = 100, random_state=1).fit_transform(tfidf_matrix)
         svd_matrix = self.svd_model.fit_transform(tfidf_matrix)
-        svd_matrix_df = pd.DataFrame(svd_matrix)
+
+        svd_matrix_df = pd.DataFrame(nmf_matrix)
+        # svd_matrix_df = pd.DataFrame(svd_matrix)
         svd_matrix_df["label"] = pd.read_csv("data.csv")["label"]
         svd_matrix_df.to_csv("svd_feature.csv", index=False)
 
