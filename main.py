@@ -22,27 +22,18 @@ random.seed(1)
 
 # call NewsContent class to preprocess/tokenize the news content
 # data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
-data = NewsContent('../FakeNewsDetection/fakenewsnet_dataset', ['gossipcop'], ['fake', 'real'])
 # data = NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
-save_as_line_sentence(data.get_features(), "news_corpus.txt")
-data.save_in_sentence_form()
+# save_as_line_sentence(data.get_features(), "news_corpus.txt")
+# data.save_in_sentence_form()
 
-# generate features to use
-feature_generator = [CountFeatureGenerator(), SentimentFeatureGenerator(), SvdFeature()]
-w2v = Word2VecFeatureGenerator(LineSentence("news_corpus.txt"))
+feature_generator = [CountFeatureGenerator(), SentimentFeatureGenerator(), SvdFeature(), Word2VecFeatureGenerator()]
 
-# Parallel(n_jobs=-1)(delayed(g.process_and_save) for g in feature_generator)
+# [g.process_and_save() for g in feature_generator]
+# w2v.process_and_save(data.get_features("pair"))
 
-# call functions to obtain features
-[g.process_and_save() for g in feature_generator]
-w2v.process_and_save(data.get_features("pair"))
 
-# features = Parallel(n_jobs=-1)(delayed(g.read()) for g in feature_generator)
-
-# store results of features
 features = [g.read() for g in feature_generator]
-features.append(w2v.read())
-
+#
 print(features)
 print('finish feature loading')
 
@@ -62,10 +53,10 @@ print("shape of features: ", X.shape)
 # X = df.drop("label", axis=1).values
 y = pd.read_csv("data.csv")["label"]
 # df_final['label'] = y
-df_final.to_csv("final_features.csv", index=False)
+# df_final.to_csv("final_features.csv", index=False)
 
-
-# select strongest features
+# X, y = utils.shuffle(X, y, random_state=0)
+print(pd.DataFrame(chi2(X, y)))
 X = SelectKBest(chi2, k=400).fit_transform(X, y)
 print(X.shape)
 print(X)
@@ -73,29 +64,46 @@ print(X)
 # split data into training and testing
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
-# dataset is unbalanced need to account for bias so use oversampling to deal with that
-sme = SMOTEENN(random_state=1)
-X_train, y_train = sme.fit_resample(X_train, y_train)
+# sme = SMOTEENN(random_state=1)
+# X_train, y_train = sme.fit_resample(X_train, y_train)
+# grid_C = [0.5 * i for i in range(1, 21)]
+# parameters = {"tol": [5e-4], "C": grid_C, "random_state": [1],
+#               "solver": ["newton-cg", "sag", "saga", "lbfgs"],
+#               "max_iter": [4000], "multi_class": ["multinomial", "ovr", "auto"]}
 
-# best model for predicting fake news with tuned parameters
-clf_xg = xgb.XGBClassifier(booster='gbtree', learning_rate=0.2, max_depth=6, n_estimators=50, num_class=2, objective='multi:softmax', random_state=1, silent=True, subsample=0.7, n_jobs=40)
-
+grid_R = [0.1 * i for i in range(1, 10)]
+grid_N = [10 * i for i in range(1, 21)]
+# clf = LogisticRegression(tol=0.0005, C=0.5, max_iter=4000, multi_class='ovr', random_state=1, solver='saga')
+# clf = xgb.XGBClassifier(booster='gbtree', learning_rate=0.2, max_depth=6, n_estimators=50, num_class=2,
+#                         objective='multi:softmax', random_state=1, subsample=0.7, n_jobs=40, verbosity=3, scale_pos_weight=0.31)
+# parameters = {'loss': 'deviance', 'max_depth': 80, 'max_features': 'auto', 'min_samples_leaf': 4, 'min_samples_split': 4, 'n_estimators': 1000, 'random_state': 42}
+parameters = {'max_depth': [3,6], 'learning_rate': grid_R, 'n_estimators': grid_N,
+              'objective': ['multi:softmax', 'multi:softprob'], 'booster': ['gbtree', 'dart'],
+              'subsample': [0.7, 0.8, 0.9, 1.], 'random_state': [1], "num_class": [2, 4, 6], "verbosity":[3], "scale_pos_weight":[0.31] }
+# clf = GradientBoostingClassifier()
+# clf = xgb.XGBClassifier()
 
 print("Start hyperperameter tuning")
 print("Start "+str(time.time()))
+# clf = GCV(LogisticRegression(), parameters, cv=10, n_jobs=40)
+# clf = GCV(GradientBoostingClassifier(), parameters, cv=2, n_jobs=40)
+clf = GCV(xgb.XGBClassifier(), parameters, cv=5, n_jobs=40)
+# eval_set = [(X_test, y_test)]
 
-# use cross validation and train model
-clf = GCV(clf_xg, cv=5, n_jobs=40)
-clf.fit(X_train, y_train)
-
-# test model
+clf.fit(X_train, y_train, eval_metric="error", verbose=True)
+# print(clf.get_booster().get_score(importance_type="gain"))
+# fscore = pd.Series(clf.get_booster().get_score(importance_type="gain")).sort_values(ascending=False)
+# xgb.plot_importance(clf.get_booster())
+# print(fscore)
 y_predict = clf.predict(X_test)
 print("end "+str(time.time()))
 
 # to obtain results of accuracy, precision, recall and F1 score
 tpfptnfn = metrics.confusion_matrix(y_test, y_predict)
 preRecF1 = metrics.classification_report(y_test, y_predict)
-# print(clf.best_params_)
+print(tpfptnfn)
 print(preRecF1)
-
+print(clf.best_params_)
+print(clf.best_score_)
+print(clf.scoring)
 
