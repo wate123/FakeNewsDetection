@@ -5,9 +5,9 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from functools import reduce
 from gensim.models.word2vec import LineSentence
-
+from utils import NewsContent
 from os.path import isfile
-
+from joblib import Parallel, delayed
 
 class Word2VecFeatureGenerator(object):
     """
@@ -58,22 +58,41 @@ class Word2VecFeatureGenerator(object):
 
         # unpack title and body tokens tuple into 2 separate list
         title_uni_list, body_uni_list = zip(*features)
-        self.title_vec = np.array(list(map(lambda x:
-                                      reduce(np.add,
-                                             [self.model.wv[word] for word in x if word in self.model],
-                                             [0.] * 300),
-                                      title_uni_list)))
+        max_size_words = len(max(body_uni_list, key=len))
+        len_news = len(body_uni_list)
+        title_vec = np.zeros((max_size_words, len_news))
+
         # self.title_vec = np.array(list(map(lambda x:
-        #                               np.add([self.model.wv[word] for word in x if word in self.model], [0.]*200),
+        #                               reduce(np.add,
+        #                                      [self.model.wv[word] for word in x if word in self.model],
+        #                                      [0.] * 300),
         #                               title_uni_list)))
+        # title = np.array(list(map(lambda x:
+        #                                    [self.model.wv[word] for word in x if word in self.model],
+        #                                    title_uni_list)))
+        # body = np.array(list(map(lambda x:
+        #                                    [self.model.wv[word] for word in x if word in self.model],
+        #                                    body_uni_list)))
+        # title_vec[:body.shape[0], :body.shape[1]] = body
+        self.body_vec = np.array(list(map(lambda x:
+                                         np.pad(np.array(
+                                             [self.model.wv[word] for word in x if word in self.model]),
+                                             (0, max_size_words - len(x)), mode="constant"),
+                                         body_uni_list)))
+        # self.title_vec = np.array(list(map(lambda x:
+        #                               np.pad(np.array(
+        #                                   [self.model.wv[word] for word in x if word in self.model]),
+        #                                   (0, max_size_words - len(x)), mode="constant"),
+        #                               title_uni_list)))
+
         self.body_vec = np.array(list(map(lambda x:
                                      reduce(np.add,
                                             [self.model.wv[word] for word in x if word in self.model],
                                             [0.] * 300),
                                      body_uni_list)))
-        # self.body_vec = np.array(list(map(lambda x:
-        #                              [self.model.wv[word] for word in x if word in self.model],
-        #                              body_uni_list)))
+        body_vec = np.array(list(map(lambda x:
+                                     [self.model.wv[word] for word in x if word in self.model],
+                                     body_uni_list)))
         # norm_title_vec = normalize(title_vec)
         # norm_body_vec = normalize(body_vec)
 
@@ -83,7 +102,8 @@ class Word2VecFeatureGenerator(object):
 
         return np.hstack([self.title_vec, self.body_vec, self.sim_vec])
 
-    def get_
+    # def get_nn_vec(self):
+        # map(lambda x: [self.model.wv[word] for word in x if word in self.model],)
 
     def process_and_save(self, pair_data):
         """
@@ -105,3 +125,8 @@ class Word2VecFeatureGenerator(object):
         :return: word2vec results without index to ensure model doesn't use index when training or testing
         """
         return pd.read_csv('w2v_feature.csv', index_col=False).drop("label", axis=1)
+
+
+if __name__ == '__main__':
+    data = NewsContent('../fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
+    Word2VecFeatureGenerator().get_title_body_cos_sim(data.get_features("pair"))
