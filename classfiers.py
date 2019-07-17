@@ -85,7 +85,7 @@ def svm(gcv, class_weight, cv=1):
     parameters = {'C': grid_C, 'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 'degree': [1, 2, 3],
                   'gamma': ['auto'], 'coef0': [0.0], 'shrinking': [True], 'probability': [False],
                   'tol': [5e-4], 'cache_size': [200], 'verbose': [False],
-                  'max_iter': [3000], 'decision_function_shape': ['ovr'], 'random_state': [1], }
+                  'max_iter': [20000], 'decision_function_shape': ['ovr'], 'random_state': [1], }
     if class_weight is not False:
         parameters["class_weight"] = [class_weight]
     if not gcv:
@@ -146,7 +146,7 @@ def xgboost(gcv, class_weight, cv=1):
     grid_N = [10 * i for i in range(1, 21)]
     parameters = {'max_depth': [3, 6], 'learning_rate': grid_R, 'n_estimators': grid_N,
                   'objective': ['multi:softmax', 'multi:softprob'], 'booster': ['gbtree', 'dart'],
-                  'subsample': [0.7, 0.8, 0.9, 1.], 'random_state': [1], "num_class": [2, 4, 6], "verbosity": [3]
+                  'subsample': [0.7, 0.8, 0.9, 1.], 'random_state': [1], "num_class": [2, 4, 6]
                   }
     # "scale_pos_weight": [0.31]
     if class_weight is not False:
@@ -155,7 +155,7 @@ def xgboost(gcv, class_weight, cv=1):
         print("Start XGBoost training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         clf = xgb.XGBClassifier(booster='dart', learning_rate=0.2, max_depth=6, n_estimators=180, num_class=4,
-                                objective='multi:softmax', random_state=1, subsample=1.0, n_jobs=40, verbosity=3,
+                                objective='multi:softmax', random_state=1, subsample=1.0, n_jobs=40, verbosity=1,
                                 scale_pos_weight=0.31)
     else:
         print("Start XGBoost hyperperameter tuning")

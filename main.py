@@ -67,19 +67,19 @@ print(X)
 # split data into training and testing
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
-sme = SMOTEENN(random_state=1)
-X_train, y_train = sme.fit_resample(X_train, y_train)
+# sme = SMOTEENN(random_state=1)
+# X_train, y_train = sme.fit_resample(X_train, y_train)
 
 grid_search = True
 class_weights = "balanced"
 # class_weights = {str(index): float(value) for index, value in enumerate(compute_class_weight('balanced', np.unique(y_train), y_train))}
 # list_classifier = [logistic_reg, random_forest, ada_boost, dt, knn, svm, xgboost]
-list_classifier = [xgboost]
+list_classifier = [svm]
 
 # clf = xgboost(gcv=True)
 # clf = random_forest(gcv=grid_search)
 for classifier in list_classifier:
-    clf = classifier(gcv=grid_search, class_weight=False)
+    clf = classifier(gcv=grid_search, class_weight=class_weights)
     clf.fit(X_train, y_train)
     # print(clf.get_booster().get_score(importance_type="gain"))
     # fscore = pd.Series(clf.get_booster().get_score(importance_type="gain")).sort_values(ascending=False)

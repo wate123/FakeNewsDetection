@@ -23,12 +23,15 @@ print("Data preparation took {} hour {} min {} sec".format(duration // 3600, (du
 #     "drop3": [0.05*i for i in range(11)],
 # }
 grid_search = {
-    "out_size1": [128],
+    # "out_size1": [2 ** i for i in range(5, 9)],
+    # "out_size2": [2 ** i for i in range(4, 8)],
+    "out_size1": [256],
     "out_size2": [64],
     "lstm_drop": [0.4],
     "drop1": [0.05],
     "drop2": [0.05],
     "drop3": [0.05],
+    "lr": [1e-4]
 }
 
 start = time.time()
@@ -41,7 +44,9 @@ duration = end - start
 print("training took {} hour {} min {} sec".format(duration // 3600, (duration % 3600) // 60, int(duration % 60)))
 
 start = time.time()
-predict(**data_dict)
+y_pred,y_true = predict(**data_dict)
+np.save('prediction.npy',y_pred.cpu())
+np.save('ground_truth.npy',y_true.cpu())
 end = time.time()
 period = end - start
 print("predicting took {} hour {} min {} sec".format(period // 3600, (period % 3600) // 60, int(period % 60)))

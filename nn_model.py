@@ -48,7 +48,6 @@ class LSTM(nn.Module):
         # shape of lstm_out: [input_size, batch_size, hidden_dim]
         # shape of self.hidden: (a, b), where a and b both
         # have shape (num_layers, batch_size, hidden_dim).
-        print(inputs.size())
         lstm_out, _ = self.lstm(inputs)
 
         # Only take the output from the final timetep
@@ -121,7 +120,7 @@ class Model(nn.Module):
 class Train_Model(object):
     def train_model(self, **kwargs):
         train_args = {
-            "epochs": 50,
+            "epochs": 30,
             "batch_size": 128,
             "validate": True,
             "save_best_dev": True,
@@ -132,7 +131,7 @@ class Train_Model(object):
             "embed_dim": 300,
             "num_layers": 1,
             "hidden_dim": 256,
-            "n_print": 1000
+            "n_print": 1000,
         }
         grid = {
             'out1': kwargs["out_size1"],
@@ -154,7 +153,7 @@ class Train_Model(object):
         model = Model(**train_args).to(device)
 
         # only once tune hyperparamer
-        optimizer = torch.optim.Adam(model.parameters(), lr=4e-4)
+        optimizer = torch.optim.Adam(model.parameters(), lr=kwargs["lr"])
         # if kwargs["validate"]:
         for epoch in range(1, train_args["epochs"] + 1):
             model.train()
@@ -162,7 +161,6 @@ class Train_Model(object):
             # one forward and backward pass
             for index, (data, label) in enumerate(train_data, 1):
                 data = Variable(data.cuda())
-                print("data: ", (data.size()))
                 label = Variable(label.cuda())
                 optimizer.zero_grad()
 
@@ -173,20 +171,20 @@ class Train_Model(object):
                 optimizer.step()
 
                 if train_args["n_print"] > 0 and index % train_args["print_every_step"] == 0:
-                    print("[epoch: {:>3} step: {:>6}] train loss: {:>4.6}"
-                          .format(kwargs["epoch"], index, loss.item()))
+                    print("[epoch: {:>3} step: {}] train loss: {:>4.6}"
+                          .format(train_args["epoch"], index, loss.item()))
 
-                if train_args["validate"]:
-                    test_model = Test_Model()
-                    default_valid_args = {
-                        "batch_size": 128,  # max(8, self.batch_size // 10),
-                        "use_cuda": train_args["use_cuda"]}
+            if train_args["validate"]:
+                test_model = Test_Model()
+                default_valid_args = {
+                    "batch_size": 128,  # max(8, self.batch_size // 10),
+                    "use_cuda": train_args["use_cuda"]}
 
-                    eval_results = test_model.test(model, kwargs['validation_data'], **default_valid_args)
+                eval_results = test_model.test(model, kwargs['validation_data'], **default_valid_args)
 
-                    if train_args['save_best_dev'] and best_eval_result(eval_results, **train_args):
-                        save_model(model, "./model.pkl", grid)
-                        print("Saved better model selected by validation.")
+                if train_args['save_best_dev'] and best_eval_result(eval_results, **train_args):
+                    save_model(model, "./model.pkl", grid)
+                    print("Saved better model selected by validation.")
 
 
 class Test_Model(object):
@@ -224,18 +222,18 @@ class Test_Model(object):
         return result_metrics
 
 
-
-def predict(data):
+def predict(**kwargs):
     # define model
     with open('hyper.pkl', 'rb') as f:
         final_grid = pickle.load(f)
+    print(final_grid)
     args = {
         "num_classes": 1,
-        'out1': final_grid["out_size1"],
-        'out2': final_grid["out_size2"],
-        "dropout1": final_grid["drop1"],
-        "dropout2": final_grid["drop2"],
-        "dropout3": final_grid["drop3"],
+        'out1': final_grid["out1"],
+        'out2': final_grid["out2"],
+        "dropout1": final_grid["dropout1"],
+        "dropout2": final_grid["dropout2"],
+        "dropout3": final_grid["dropout3"],
         "dropout": final_grid["lstm_drop"],
         "embed_dim": 300,
         "num_layers": 1,
@@ -243,7 +241,7 @@ def predict(data):
     }
 
     model = load_model(Model(**args), args['model_path'])
-
+    data_test = kwargs["test_data"]
     print("Start Predicting")
     device = 'cpu'
     if torch.cuda.is_available():
@@ -254,9 +252,8 @@ def predict(data):
     batch_output = []
     truth_list = []
 
-    for i, (datas, labels) in enumerate(data):
-        datas = [Variable(datas[0].cuda()), Variable(datas[1].cuda()), Variable(datas[2].cuda()),
-                 Variable(datas[3].cuda())]
+    for i, (datas, labels) in enumerate(data_test):
+        datas = Variable(datas.cuda())
         labels = Variable(labels.cuda())
 
         with torch.no_grad():
@@ -267,12 +264,14 @@ def predict(data):
 
     predict = torch.cat(batch_output, 0)
     truth = torch.cat(truth_list, 0)
+    loss = nn.BCELoss()
+    result_metrics = {"bce": loss(truth, predict)}
 
-    result_metrics = {"bce": nn.BCELoss(truth, predict)}
-    print("[tester] {}".format(", ".join(
+
+    print("[Final tester] {}".format(", ".join(
         [str(key) + "=" + "{:.5f}".format(value)
          for key, value in result_metrics.items()])))
-
+    return torch.cat(batch_output, 0), torch.cat(truth_list, 0)
 
 def best_eval_result(eval_results, **kwargs):
     """Check if the current epoch yields better validation results.

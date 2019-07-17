@@ -39,9 +39,9 @@ def load_model(model, model_path):
 
 
 def read_data(seed):
-    X = File("w2v_feature_pad.hdf5", "r")["w2v"][:]
-    y = pd.read_csv("data.csv")["label"]
-    y = LabelEncoder().fit_transform(y)
+    X = File("w2v_feature_pad.hdf5", "r")["w2v"][:5000]
+    y = pd.read_csv("data.csv")["label"].head(5000).values
+    y = LabelEncoder().fit_transform(y).T
     # split them into 80% training, 10% testing, 10% validation
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
     X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=seed)

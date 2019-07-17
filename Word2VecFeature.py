@@ -187,5 +187,5 @@ class Word2VecFeatureGenerator(object):
 
 
 if __name__ == '__main__':
-    data = NewsContent('../fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
+    data = NewsContent('../fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
     Word2VecFeatureGenerator(data.get_features("pair")).get_nn_vecs()
