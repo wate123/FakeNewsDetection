@@ -19,6 +19,7 @@ import pickle
 torch.manual_seed(1)
 torch.cuda.is_available()
 
+GLOBAL_BEST_LOSS = 1e11
 
 # w2v = Word2VecFeatureGenerator()
 
@@ -71,7 +72,7 @@ class Model(nn.Module):
         embed_dim = params['embed_dim']
 
         hidden_dim = params['hidden_dim']
-        linear_in = params['hidden_dim']
+        linear_in = params['hidden_dim'] * 3
 
         dropout = params['dropout']
 
@@ -100,8 +101,8 @@ class Model(nn.Module):
         r_att = torch.sum(att.unsqueeze(-1) * lstm, dim=1)  # [b,h]
 
         # pooling
-        r_avg = torch.avg(lstm)  # [b,h]
-        r_max = torch.max(lstm)  # [b,h]
+        r_avg = torch.mean(lstm, dim=1)  # [b,h]
+        r_max = torch.max(lstm, dim=1)[0]  # [b,h]
         r = torch.cat([r_avg, r_max, r_att], -1)  # [b,h*3]
 
         # concatenate with local part
@@ -117,104 +118,111 @@ class Model(nn.Module):
         return r
 
 
-def train(**kwargs):
-    train_args = {
-        "epochs": 50,
-        "batch_size": 128,
-        "validate": True,
-        "save_best_dev": True,
-        "use_cuda": True,
-        "print_every_step": 1000,
-        "model_path": kwargs['model_path'],
-        "eval_metrics": "bce",
-        "embed_dim": 300,
-        "num_layers": 1,
-        "hidden_dim": 256,
+class Train_Model(object):
+    def train_model(self, **kwargs):
+        train_args = {
+            "epochs": 50,
+            "batch_size": 128,
+            "validate": True,
+            "save_best_dev": True,
+            "use_cuda": True,
+            "print_every_step": 1000,
+            "model_path": kwargs['model_path'],
+            "eval_metrics": "bce",
+            "embed_dim": 300,
+            "num_layers": 1,
+            "hidden_dim": 256,
+            "n_print": 1000
+        }
+        grid = {
+            'out1': kwargs["out_size1"],
+            'out2': kwargs["out_size2"],
+            "dropout1": kwargs["drop1"],
+            "dropout2": kwargs["drop2"],
+            "dropout3": kwargs["drop3"],
+            "dropout": kwargs["lstm_drop"],
+        }
 
-    }
-    grid = {
-        'out1': kwargs["out_size1"],
-        'out2': kwargs["out_size2"],
-        "dropout1": kwargs["drop1"],
-        "dropout2": kwargs["drop2"],
-        "dropout3": kwargs["drop3"],
-        "dropout": kwargs["lstm_drop"],
-    }
+        train_args.update(grid)
+        device = 'cpu'
+        if torch.cuda.is_available() and train_args["use_cuda"]:
+            device = 'cuda:0'
+        print("Start training")
+        # load train data
+        train_data = kwargs["train_data"]
 
-    train_args.update(grid)
-    device = 'cpu'
-    if torch.cuda.is_available() and train_args["use_cuda"]:
-        device = 'cuda:0'
-    print("Start training")
-    # load train data
-    train_data = kwargs["train_data"]
+        model = Model(**train_args).to(device)
 
-    model = Model(**train_args).to(device)
+        # only once tune hyperparamer
+        optimizer = torch.optim.Adam(model.parameters(), lr=4e-4)
+        # if kwargs["validate"]:
+        for epoch in range(1, train_args["epochs"] + 1):
+            model.train()
 
-    # only once tune hyperparamer
-    optimizer = torch.optim.Adam(model.parameters(), lr=4e-4)
-    # if kwargs["validate"]:
-    for epoch in range(1, train_args["epochs"]+1):
-        model.train()
+            # one forward and backward pass
+            for index, (data, label) in enumerate(train_data, 1):
+                data = Variable(data.cuda())
+                print("data: ", (data.size()))
+                label = Variable(label.cuda())
+                optimizer.zero_grad()
 
-        # one forward and backward pass
-        for index, (data, label) in enumerate(train_data, 1):
+                logits = model(data)
+
+                loss = model.loss(logits, label)
+                loss.backward()
+                optimizer.step()
+
+                if train_args["n_print"] > 0 and index % train_args["print_every_step"] == 0:
+                    print("[epoch: {:>3} step: {:>6}] train loss: {:>4.6}"
+                          .format(kwargs["epoch"], index, loss.item()))
+
+                if train_args["validate"]:
+                    test_model = Test_Model()
+                    default_valid_args = {
+                        "batch_size": 128,  # max(8, self.batch_size // 10),
+                        "use_cuda": train_args["use_cuda"]}
+
+                    eval_results = test_model.test(model, kwargs['validation_data'], **default_valid_args)
+
+                    if train_args['save_best_dev'] and best_eval_result(eval_results, **train_args):
+                        save_model(model, "./model.pkl", grid)
+                        print("Saved better model selected by validation.")
+
+
+class Test_Model(object):
+    def __init__(self):
+        self.device = 'cpu'
+
+    def test(self, model, valid_data, **kwargs):
+        if torch.cuda.is_available() and kwargs["use_cuda"]:
+            self.device = 'cuda:0'
+
+        model = model.to(self.device)
+
+        model.eval()
+        output = []
+        ground_truth = []
+
+        for index, (data, label) in enumerate(valid_data):
             data = Variable(data.cuda())
-            print("data: ", (data.size()))
             label = Variable(label.cuda())
-            optimizer.zero_grad()
 
-            logits = model(data)
+            with torch.no_grad():
+                prediction = model(data)
+            output.append(prediction.detach())
+            ground_truth.append(label.detach())
 
-            loss = model.loss(logits, label)
-            loss.backward()
-            optimizer.step()
+        # evaluation matrics
 
-            if train_args["n_print"] > 0 and index % train_args["print_every_step"] == 0:
-                print("[epoch: {:>3} step: {:>6}] train loss: {:>4.6}"
-                      .format(kwargs["epoch"], index, loss.item()))
-
-            if train_args["validate"]:
-                default_valid_args = {
-                    "batch_size": 128,  # max(8, self.batch_size // 10),
-                    "use_cuda": train_args["use_cuda"]}
-
-                eval_results = test(model, kwargs['validation_data'], **default_valid_args)
-
-                if kwargs['save_best_dev'] and best_eval_result(eval_results, **train_args):
-                    save_model(model, "model/model,pkl", grid)
-                    print("Saved better model selected by validation.")
-
-
-def test(model, valid_data, **kwargs):
-    device = 'cpu'
-    if torch.cuda.is_available() and kwargs["use_cuda"]:
-        device = 'cuda:0'
-
-    model = model.to(device)
-
-    model.eval()
-    output = []
-    ground_truth = []
-
-    for index, (data, label) in enumerate(valid_data):
-        data = Variable(data.cuda())
-        label = Variable(label.cuda())
-
-        with torch.no_grad():
-            prediction = model(data)
-        output.append(prediction.detach())
-        ground_truth.append(label.detach())
-
-    # evaluation matrics
-
-    pred = torch.cat(output, 0)
-    truth = torch.cat(ground_truth, 0)
-
-    result_metrics = {"bce": nn.BCELoss(truth, pred)}
-    print("[tester] {}".format(", ".join(
+        pred = torch.cat(output, 0)
+        truth = torch.cat(ground_truth, 0)
+        loss = nn.BCELoss()
+        result_metrics = {"bce": loss(truth, pred)}
+        print("[tester] {}".format(", ".join(
             [str(key) + "=" + "{:.5f}".format(value)
              for key, value in result_metrics.items()])))
+        return result_metrics
+
 
 
 def predict(data):
@@ -275,6 +283,7 @@ def best_eval_result(eval_results, **kwargs):
     _best_loss = 1e10
 
     global GLOBAL_BEST_LOSS
+
     eval_metrics = kwargs["eval_metrics"]
     assert eval_metrics in eval_results, \
         "Evaluation doesn't contain metrics '{}'." \

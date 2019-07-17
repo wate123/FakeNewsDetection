@@ -1,16 +1,15 @@
 import numpy as np
 import torch, time
 from nn_utils import read_data, data_preparation
-from nn_model import train, predict
+from nn_model import Train_Model, predict
 from itertools import product
 seed = 1
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-GLOBAL_BEST_LOSS = 1e11
 print("Preparing Dataset")
 start = time.time()
-data_dict = data_preparation()
+data_dict = data_preparation(seed)
 end = time.time()
 duration = end - start
 print("Data preparation took {} hour {} min {} sec".format(duration // 3600, (duration % 3600) // 60, int(duration % 60)))
@@ -33,9 +32,10 @@ grid_search = {
 }
 
 start = time.time()
+train = Train_Model()
 for grid in [dict(zip(grid_search.keys(), v)) for v in product(*grid_search.values())]:
     new_args = {**data_dict, **grid}
-    train(**new_args)
+    train.train_model(**new_args)
 end = time.time()
 duration = end - start
 print("training took {} hour {} min {} sec".format(duration // 3600, (duration % 3600) // 60, int(duration % 60)))

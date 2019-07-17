@@ -15,7 +15,7 @@ class FakenewsDataset(Dataset):
         return len(self.y)
 
     def __getitem__(self, item):
-        X = torch.tensor(self.X[item][0], dtype=torch.float)
+        X = torch.tensor(self.X[item], dtype=torch.float)
         y = torch.tensor(self.y[item], dtype=torch.float)
         return X, y
 
@@ -38,20 +38,20 @@ def load_model(model, model_path):
     return model
 
 
-def read_data():
+def read_data(seed):
     X = File("w2v_feature_pad.hdf5", "r")["w2v"][:]
     y = pd.read_csv("data.csv")["label"]
     y = LabelEncoder().fit_transform(y)
     # split them into 80% training, 10% testing, 10% validation
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
-    X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
+    X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=seed)
     return X_train, X_valid, X_test, y_train, y_valid, y_test
 
 
-def data_preparation():
+def data_preparation(seed):
     model_path = 'model/model.pkl'
     batch_size = 128
-    X_train, X_valid, X_test, y_train, y_valid, y_test = read_data()
+    X_train, X_valid, X_test, y_train, y_valid, y_test = read_data(seed)
 
     X_train = np.swapaxes(X_train, 0, 1)
     X_valid = np.swapaxes(X_valid, 0, 1)
