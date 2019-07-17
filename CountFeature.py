@@ -19,16 +19,17 @@ class CountFeatureGenerator(object):
     """
     Generate Count feature and write into csv file.
     """
-    def __init__(self, name='countFeatureGenerator' ):
+    def __init__(self, name='countFeatureGenerator'  ):
         """
         Initializer that constructs components of count feature
         """
         # super(CountFeatureGenerator, self).__init__(name)
         # self.data = data
-        self.pair_news = {}
+        self.pair_news = pd.DataFrame()
         self.parts = ["title", "body"]
         self.ngrams = ["uni", "bi", "tri"]
         self.count_features_df = pd.DataFrame()
+        # self.data = data
         # self.unpack_pair_generator()
 
     def process_and_save(self):
@@ -39,15 +40,22 @@ class CountFeatureGenerator(object):
         # a list of title and body key value pairs
         self.pair_news = pd.read_csv("data.csv")
 
+        # title_uni_list, body_uni_list = zip(*self.data)
+        # self.pair_news["title"] = list(title_uni_list)
+        # self.pair_news["body"] = list(body_uni_list)
+        # self.pair_news["label"] = pd.read_csv("data.csv")["label"]
         ngrams = {}
-
+        # print(max([len(part)for part in list(body_uni_list)]))
         # generate count, unique count, and ratio of unique count and count (unique count / count)
         # of title, body, and uni to tri gram
         for part in self.parts:
             #preprocess data
             unigram = self.pair_news[part].astype(str).apply(preprocess)
+            # unigram = self.pair_news[part].values
+            bigram = list(get_ngram(2, unigram))
 
-            for n, gram in enumerate(self.ngrams):
+
+            for n, gram in enumerate(self.ngrams, 1):
                 ngrams[part + "_" + gram] = list(get_ngram(n, unigram))
 
                 #store results in data frame

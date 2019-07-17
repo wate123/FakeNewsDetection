@@ -17,7 +17,7 @@ import time
 # % matplotlib inline
 from sklearn.manifold import TSNE
 from sklearn.metrics import f1_score
-
+import itertools
 
 # global variables for preprocessing text data
 
@@ -122,7 +122,7 @@ class NewsContent(object):
         else:
             self.sites = sites
             self.news_types = news_types
-        self.list_news_path = list(self.get_list_news_files())
+        self.list_news_path = self.get_list_news_files()
         # self.list_news_path = Parallel(n_jobs=-1)(delayed(list(self.get_list_news_files())))
         # self.feature_type = feature_type
 
@@ -222,7 +222,7 @@ class NewsContent(object):
 
     def get_list_news_files(self):
         """Return files path iterator of news"""
-        # list_news_files = []
+        list_news_files = []
         for site in self.sites:
             for news_type in self.news_types:
 
@@ -241,36 +241,13 @@ class NewsContent(object):
                     # collecting all articles
                     for f in files:
                         if f.endswith(".json") and len(dirs) == 0:
-                            yield join(root, f)
-                            # list_news_files.append(join(root, f))
+                            # yield join(root, f)
+                            list_news_files.append(join(root, f))
         # print(len(list_news_files))
-        # return list_news_files
+        return list_news_files
 
-        def get_list_twitter_files(self):
-            """Return files path iterator of news"""
-            list_twitter_files = []
-            for site in self.sites:
-                for news_type in self.news_types:
-
-                    # accessing files through directories
-                    site_folder = join(self.dirname, site)
-                    news_path = join(site_folder, news_type)
-
-                    # only obtaining the tweets/retweets at this time
-                    exclude = ["news", "user_profile", "user_timeline_tweets", "user_followers",
-                               "user_following"]
-
-                    # iterating through directories only focusing on ones containing the news content
-                    for root, dirs, files in walk(news_path, topdown=True):
-                        dirs[:] = [d for d in dirs if d not in exclude]
-
-                        # collecting all articles
-                        for f in files:
-                            if f.endswith(".json") and len(dirs) == 0:
-                                yield join(root, f)
-                                list_twitter_files.append(join(root, f))
-            print(len(list_twitter_files))
-            # return list_news_files
+    # def save_tweets_tocsv(self):
+    #     self.
 
 
 def get_ngram(n, sentence):
@@ -278,13 +255,13 @@ def get_ngram(n, sentence):
     Function to get n grams to examine relationship between words in the news content
     """
     if n == 1:
-        return list(sentence)
+        return sentence
     
     # create phrases model to find words and ngrams that occur at least once
     ngram = Phraser(Phrases(sentence, min_count=1, threshold=1))
 
     # for bigrams and higher grams
-    for i in range(2,n):
+    for i in range(3,n):
         ngram = Phraser(Phrases(ngram[sentence], min_count=1, threshold=1))
     return ngram[sentence]
 
