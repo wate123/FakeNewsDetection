@@ -28,8 +28,7 @@ data = NewsContent('../fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake
 # save_as_line_sentence(data.get_features(), "news_corpus.txt")
 data.save_in_sentence_form()
 
-feature_generator = [CountFeatureGenerator(), SentimentFeatureGenerator(),
-                     SvdFeature(), Word2VecFeatureGenerator(data.get_features("pair"))]
+feature_generator = [CountFeatureGenerator(), SentimentFeatureGenerator(), SvdFeature()]
 [g.process_and_save() for g in feature_generator]
 # w2v.process_and_save()
 # df = CountFeatureGenerator().read()
@@ -43,6 +42,8 @@ print('Finish feature loading')
 
 # store results in data frame
 df_final = pd.concat(features, axis=1)
+# features.pop()
+# df_final_nn = pd.concat(features, axis=1)
 
 
 # df_final = pd.read_csv("final_features.csv")
@@ -57,10 +58,12 @@ print("shape of features: ", X.shape)
 # X = df.drop("label", axis=1).values
 y = pd.read_csv("data.csv")["label"]
 # df_final['label'] = y
-df_final.to_csv("final_features.csv", index=False)
+df_final.to_csv("final_features_ml.csv", index=False)
+# df_final_nn.to_csv("final_features_nn.csv", index=False)
+
 
 print(pd.DataFrame(chi2(X, y)))
-X = SelectKBest(chi2, k=400).fit_transform(X, y)
+# X = SelectKBest(chi2, k=400).fit_transform(X, y)
 print(X.shape)
 print(X)
 
@@ -70,8 +73,9 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # sme = SMOTEENN(random_state=1)
 # X_train, y_train = sme.fit_resample(X_train, y_train)
 
-grid_search = True
+grid_search = False
 class_weights = "balanced"
+# class_weights = False
 # class_weights = {str(index): float(value) for index, value in enumerate(compute_class_weight('balanced', np.unique(y_train), y_train))}
 # list_classifier = [logistic_reg, random_forest, ada_boost, dt, knn, svm, xgboost]
 list_classifier = [svm]

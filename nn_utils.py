@@ -2,17 +2,18 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 from h5py import File
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.utils.class_weight import compute_class_weight
 import pandas as pd, numpy as np
 import pickle
-
-
+from sklearn.utils import shuffle
+import random
 class FakenewsDataset(Dataset):
     def __init__(self, X, y):
         self.X, self.y = X, y
 
     def __len__(self):
-        return len(self.y)
+        return len(self.X)
 
     def __getitem__(self, item):
         X = torch.tensor(self.X[item], dtype=torch.float)
@@ -39,23 +40,31 @@ def load_model(model, model_path):
 
 
 def read_data(seed):
-    X = File("w2v_feature_pad.hdf5", "r")["w2v"][:5000]
-    y = pd.read_csv("data.csv")["label"].head(5000).values
-    y = LabelEncoder().fit_transform(y).T
+    X = File("w2v_feature_pad.hdf5", "r")["w2v"][:]
+    labels = pd.read_csv("data.csv")["label"][:]
+    y = labels.values
+    real_fake_count = labels.value_counts()
+    # class_weight = [labels.shape[0]/real_fake_count['fake'], labels.shape[0]/real_fake_count['real']]
+    class_weight = compute_class_weight(class_weight='balanced', classes=np.unique(y), y=y)
+
+    # y = LabelEncoder().fit_transform(y).reshape(-1,1)
+    y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
+    # random sample n rows
+    X, y = zip(*random.sample(list(zip(X,y)), 5000))
     # split them into 80% training, 10% testing, 10% validation
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
     X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=seed)
-    return X_train, X_valid, X_test, y_train, y_valid, y_test
+    return X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight
 
 
 def data_preparation(seed):
-    model_path = 'model/model.pkl'
+    model_path = 'model.pkl'
     batch_size = 128
-    X_train, X_valid, X_test, y_train, y_valid, y_test = read_data(seed)
+    X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight = read_data(seed)
 
-    X_train = np.swapaxes(X_train, 0, 1)
-    X_valid = np.swapaxes(X_valid, 0, 1)
-    X_test = np.swapaxes(X_test, 0, 1)
+    # X_train = np.swapaxes(X_train, 0, 1)
+    # X_valid = np.swapaxes(X_valid, 0, 1)
+    # X_test = np.swapaxes(X_test, 0, 1)
 
 
     train_set = FakenewsDataset(X_train, y_train)
@@ -70,5 +79,5 @@ def data_preparation(seed):
     valid_set = FakenewsDataset(X_valid, y_valid)
     print('valid_size =', len(valid_set.y))
     valid_loader = DataLoader(valid_set, batch_size=batch_size, shuffle=False, num_workers=16)
-    return {"train_data": train_loader, "test_data": test_loader, "validation_data": valid_loader, "model_path": model_path}
+    return {"train_data": train_loader, "test_data": test_loader, "validation_data": valid_loader, "class_weight": class_weight, "model_path": model_path}
 

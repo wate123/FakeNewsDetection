@@ -341,7 +341,8 @@ def infer(**args):
     # predict
     data_test = args["data_test"]
     y_pred,y_true = predictor.predict(model, data_test)
-    
+
+
     np.save('prediction.npy',y_pred.cpu())
     np.save('ground_truth.npy',y_true.cpu())
     

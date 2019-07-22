@@ -11,9 +11,11 @@ from utils import NewsContent
 from gensim.models.word2vec import LineSentence
 import numpy as np
 import pandas as pd
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report
 from nn_utils import save_model, load_model
 from torch.autograd import Variable
-
+import matplotlib.pyplot as plt
+import os
 import pickle
 
 torch.manual_seed(1)
@@ -85,11 +87,11 @@ class Model(nn.Module):
         self.drop2 = nn.Dropout(dropout2)
         self.drop3 = nn.Dropout(dropout3)
         self.out1 = nn.Linear(linear_out1, linear_out2)
-        self.out2 = nn.Linear(linear_out2, 1)
+        self.out2 = nn.Linear(linear_out2, params["num_classes"])
         # sigmoid
         # self.sigmoid = torch.sigmoid()
-
-        self.loss = nn.BCELoss()
+        # self.loss = nn.BCELoss()
+        self.loss = nn.BCELoss(weight=torch.FloatTensor(params['class_weight']))
 
     def forward(self, data):
         lstm = self.lstm(data)
@@ -112,8 +114,8 @@ class Model(nn.Module):
 
         # no activation
         r = self.out2(self.drop3(r))
-        r = torch.sigmoid(r)
-
+        r = F.softmax(r)
+        # r = torch.sigmoid(r)
         return r
 
 
@@ -125,13 +127,15 @@ class Train_Model(object):
             "validate": True,
             "save_best_dev": True,
             "use_cuda": True,
-            "print_every_step": 1000,
+            "print_every_step": 10,
             "model_path": kwargs['model_path'],
             "eval_metrics": "bce",
             "embed_dim": 300,
             "num_layers": 1,
             "hidden_dim": 256,
             "n_print": 1000,
+            "class_weight": kwargs["class_weight"],
+            "num_classes": 2
         }
         grid = {
             'out1': kwargs["out_size1"],
@@ -140,6 +144,7 @@ class Train_Model(object):
             "dropout2": kwargs["drop2"],
             "dropout3": kwargs["drop3"],
             "dropout": kwargs["lstm_drop"],
+            "lr": kwargs["lr"]
         }
 
         train_args.update(grid)
@@ -155,9 +160,11 @@ class Train_Model(object):
         # only once tune hyperparamer
         optimizer = torch.optim.Adam(model.parameters(), lr=kwargs["lr"])
         # if kwargs["validate"]:
+        vali_acc = []
+        train_acc = 0
+        best_acc = 0
         for epoch in range(1, train_args["epochs"] + 1):
             model.train()
-
             # one forward and backward pass
             for index, (data, label) in enumerate(train_data, 1):
                 data = Variable(data.cuda())
@@ -167,24 +174,47 @@ class Train_Model(object):
                 logits = model(data)
 
                 loss = model.loss(logits, label)
+
                 loss.backward()
                 optimizer.step()
 
+                _, predition = torch.max(logits.data, 1)
+                _, truth = torch.max(label.data, 1)
+                # train_acc += torch.sum(predition == truth).item()
+                train_acc = accuracy_score(truth.cpu(), predition.cpu())
+
                 if train_args["n_print"] > 0 and index % train_args["print_every_step"] == 0:
                     print("[epoch: {:>3} step: {}] train loss: {:>4.6}"
-                          .format(train_args["epoch"], index, loss.item()))
+                          .format(epoch, index, loss.item()))
 
+            # train_acc = train_acc / len(train_data.dataset)
+            print("Train Accuracy: {:>4.6}".format(train_acc))
             if train_args["validate"]:
                 test_model = Test_Model()
                 default_valid_args = {
                     "batch_size": 128,  # max(8, self.batch_size // 10),
-                    "use_cuda": train_args["use_cuda"]}
+                    "use_cuda": train_args["use_cuda"],
+                    "class_weight": train_args["class_weight"]
+                }
 
-                eval_results = test_model.test(model, kwargs['validation_data'], **default_valid_args)
-
-                if train_args['save_best_dev'] and best_eval_result(eval_results, **train_args):
+                test_acc, truth, eval_results = test_model.test(model, kwargs['validation_data'], **default_valid_args)
+                print("Validate Accuracy: {:>4.6}".format(test_acc))
+                if test_acc > best_acc:
+                    best_acc = test_acc
                     save_model(model, "./model.pkl", grid)
+                    print("Current Grid Parameters", grid)
                     print("Saved better model selected by validation.")
+                vali_acc.append(test_acc)
+                # if train_args['save_best_dev'] and best_eval_result(eval_results, **train_args):
+                #     save_model(model, "./model.pkl", grid)
+                #     print("Current Grid Parameters", grid)
+                #     print("Saved better model selected by validation.")
+        plt.plot()
+        plt.plot(vali_acc)
+        plt.title("lr = "+str(kwargs["lr"]))
+        if os.path.exists('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png'):
+            os.remove('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
+        plt.savefig('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
 
 
 class Test_Model(object):
@@ -214,13 +244,20 @@ class Test_Model(object):
 
         pred = torch.cat(output, 0)
         truth = torch.cat(ground_truth, 0)
-        loss = nn.BCELoss()
-        result_metrics = {"bce": loss(truth, pred)}
-        print("[tester] {}".format(", ".join(
-            [str(key) + "=" + "{:.5f}".format(value)
-             for key, value in result_metrics.items()])))
-        return result_metrics
+        weight = torch.FloatTensor(kwargs['class_weight']).cuda()
+        loss = nn.BCELoss(weight=weight)
+        result_metrics = {"bce": loss(pred, truth)}
+        _, pred = torch.max(pred, 1)
+        _, truth = torch.max(truth, 1)
 
+        # print("[tester] {}".format(", ".join(
+        #     [str(key) + "=" + "{:.5f}".format(value)
+        #      for key, value in result_metrics.items()])))
+        # return result_metrics
+        test_acc = accuracy_score(truth.cpu(), pred.cpu())
+        print(classification_report(truth.cpu(), pred.cpu()))
+        # test_acc = balanced_accuracy_score(truth.cpu(), pred.cpu(), weight.cpu())
+        return test_acc, truth, result_metrics
 
 def predict(**kwargs):
     # define model
@@ -228,20 +265,24 @@ def predict(**kwargs):
         final_grid = pickle.load(f)
     print(final_grid)
     args = {
-        "num_classes": 1,
+        "num_classes": 2,
         'out1': final_grid["out1"],
         'out2': final_grid["out2"],
         "dropout1": final_grid["dropout1"],
         "dropout2": final_grid["dropout2"],
         "dropout3": final_grid["dropout3"],
-        "dropout": final_grid["lstm_drop"],
+        "dropout": final_grid["dropout"],
         "embed_dim": 300,
         "num_layers": 1,
         "hidden_dim": 256,
+        "batch_size": 128,
+        "class_weight": kwargs["class_weight"]
     }
 
-    model = load_model(Model(**args), args['model_path'])
+    model = load_model(Model(**args), kwargs['model_path'])
     data_test = kwargs["test_data"]
+    print()
+    print("="*50)
     print("Start Predicting")
     device = 'cpu'
     if torch.cuda.is_available():
@@ -262,16 +303,18 @@ def predict(**kwargs):
         batch_output.append(prediction.detach())
         truth_list.append(labels.detach())
 
-    predict = torch.cat(batch_output, 0)
+    pred = torch.cat(batch_output, 0)
     truth = torch.cat(truth_list, 0)
-    loss = nn.BCELoss()
-    result_metrics = {"bce": loss(truth, predict)}
 
+    loss = nn.BCELoss(weight=torch.FloatTensor(kwargs['class_weight']).cuda())
+    result_metrics = {"bce": loss(pred, truth)}
 
+    # test_acc = accuracy_score(truth.cpu(), pred.cpu())
+    # print("[Final tester] Accuracy: {}".format(test_acc))
     print("[Final tester] {}".format(", ".join(
         [str(key) + "=" + "{:.5f}".format(value)
          for key, value in result_metrics.items()])))
-    return torch.cat(batch_output, 0), torch.cat(truth_list, 0)
+    return pred.cpu(), truth.cpu()
 
 def best_eval_result(eval_results, **kwargs):
     """Check if the current epoch yields better validation results.

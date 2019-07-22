@@ -85,13 +85,17 @@ def svm(gcv, class_weight, cv=1):
     parameters = {'C': grid_C, 'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 'degree': [1, 2, 3],
                   'gamma': ['auto'], 'coef0': [0.0], 'shrinking': [True], 'probability': [False],
                   'tol': [5e-4], 'cache_size': [200], 'verbose': [False],
-                  'max_iter': [20000], 'decision_function_shape': ['ovr'], 'random_state': [1], }
+                  'max_iter': [50000], "class_weight": ['balanced'], 'decision_function_shape': ['ovr'], 'random_state': [1], }
     if class_weight is not False:
         parameters["class_weight"] = [class_weight]
     if not gcv:
         print("Start SVM training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
-        clf = SVC()
+
+        clf = SVC(C= 9.5, cache_size= 200, class_weight= 'balanced', coef0= 0.0,
+                  decision_function_shape= 'ovr', degree= 1, gamma= 'auto', kernel= 'linear',
+                  max_iter= 30000, probability= False, random_state= 1, shrinking= True,
+                  tol= 0.0005, verbose= False)
     else:
         print("Start SVM hyperperameter tuning")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
@@ -155,7 +159,7 @@ def xgboost(gcv, class_weight, cv=1):
         print("Start XGBoost training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         clf = xgb.XGBClassifier(booster='dart', learning_rate=0.2, max_depth=6, n_estimators=180, num_class=4,
-                                objective='multi:softmax', random_state=1, subsample=1.0, n_jobs=40, verbosity=1,
+                                objective='multi:softmax', random_state=1, subsample=1.0, n_jobs=40, verbosity=0,
                                 scale_pos_weight=0.31)
     else:
         print("Start XGBoost hyperperameter tuning")
