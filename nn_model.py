@@ -95,6 +95,7 @@ class Model(nn.Module):
 
     def forward(self, data):
         lstm = self.lstm(data)
+
         att = self.fc_att(lstm).squeeze(-1)  # [b,sl,h]->[b,sl]
 
         att = F.softmax(att, dim=-1)  # [b,sl]
@@ -114,8 +115,8 @@ class Model(nn.Module):
 
         # no activation
         r = self.out2(self.drop3(r))
-        r = F.softmax(r)
-        # r = torch.sigmoid(r)
+        # r = F.softmax(r)
+        r = torch.sigmoid(r)
         return r
 
 
@@ -163,10 +164,15 @@ class Train_Model(object):
         vali_acc = []
         train_acc = 0
         best_acc = 0
+
         for epoch in range(1, train_args["epochs"] + 1):
             model.train()
             # one forward and backward pass
             for index, (data, label) in enumerate(train_data, 1):
+                # ml_features = Variable(torch.tensor(np.delete(data[1][:, :, 0].numpy(),
+                #                                  np.argwhere(np.all(data[1][:, :, 0].numpy()[..., :] == 0, axis=0)),
+                #                                  axis=1)))
+                # data = [Variable(data[0].cuda()),Variable(ml_features.cuda())]
                 data = Variable(data.cuda())
                 label = Variable(label.cuda())
                 optimizer.zero_grad()
@@ -178,16 +184,17 @@ class Train_Model(object):
                 loss.backward()
                 optimizer.step()
 
-                _, predition = torch.max(logits.data, 1)
+                _, prediction = torch.max(logits.data, 1)
                 _, truth = torch.max(label.data, 1)
-                # train_acc += torch.sum(predition == truth).item()
-                train_acc = accuracy_score(truth.cpu(), predition.cpu())
+                train_acc += torch.sum(prediction == truth).item()
+                # train_acc = accuracy_score(truth.cpu(), prediction.cpu())
 
                 if train_args["n_print"] > 0 and index % train_args["print_every_step"] == 0:
                     print("[epoch: {:>3} step: {}] train loss: {:>4.6}"
                           .format(epoch, index, loss.item()))
 
-            # train_acc = train_acc / len(train_data.dataset)
+            train_acc = train_acc / len(train_data.dataset)
+            torch.cuda.empty_cache()
             print("Train Accuracy: {:>4.6}".format(train_acc))
             if train_args["validate"]:
                 test_model = Test_Model()
@@ -197,7 +204,7 @@ class Train_Model(object):
                     "class_weight": train_args["class_weight"]
                 }
 
-                test_acc, truth, eval_results = test_model.test(model, kwargs['validation_data'], **default_valid_args)
+                test_acc, truth = test_model.test(model, kwargs['validation_data'], **default_valid_args)
                 print("Validate Accuracy: {:>4.6}".format(test_acc))
                 if test_acc > best_acc:
                     best_acc = test_acc
@@ -209,12 +216,12 @@ class Train_Model(object):
                 #     save_model(model, "./model.pkl", grid)
                 #     print("Current Grid Parameters", grid)
                 #     print("Saved better model selected by validation.")
-        plt.plot()
         plt.plot(vali_acc)
         plt.title("lr = "+str(kwargs["lr"]))
         if os.path.exists('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png'):
             os.remove('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
         plt.savefig('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
+        plt.clf()
 
 
 class Test_Model(object):
@@ -246,7 +253,7 @@ class Test_Model(object):
         truth = torch.cat(ground_truth, 0)
         weight = torch.FloatTensor(kwargs['class_weight']).cuda()
         loss = nn.BCELoss(weight=weight)
-        result_metrics = {"bce": loss(pred, truth)}
+        # result_metrics = {"bce": loss(pred, truth)}
         _, pred = torch.max(pred, 1)
         _, truth = torch.max(truth, 1)
 
@@ -255,9 +262,9 @@ class Test_Model(object):
         #      for key, value in result_metrics.items()])))
         # return result_metrics
         test_acc = accuracy_score(truth.cpu(), pred.cpu())
-        print(classification_report(truth.cpu(), pred.cpu()))
+        print(classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real']))
         # test_acc = balanced_accuracy_score(truth.cpu(), pred.cpu(), weight.cpu())
-        return test_acc, truth, result_metrics
+        return test_acc, truth
 
 def predict(**kwargs):
     # define model
@@ -309,7 +316,7 @@ def predict(**kwargs):
     loss = nn.BCELoss(weight=torch.FloatTensor(kwargs['class_weight']).cuda())
     result_metrics = {"bce": loss(pred, truth)}
 
-    # test_acc = accuracy_score(truth.cpu(), pred.cpu())
+    # test_acc = classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real'])
     # print("[Final tester] Accuracy: {}".format(test_acc))
     print("[Final tester] {}".format(", ".join(
         [str(key) + "=" + "{:.5f}".format(value)

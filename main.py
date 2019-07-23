@@ -77,8 +77,8 @@ grid_search = False
 class_weights = "balanced"
 # class_weights = False
 # class_weights = {str(index): float(value) for index, value in enumerate(compute_class_weight('balanced', np.unique(y_train), y_train))}
-# list_classifier = [logistic_reg, random_forest, ada_boost, dt, knn, svm, xgboost]
-list_classifier = [svm]
+list_classifier = [logistic_reg, random_forest, ada_boost, dt, knn, svm, xgboost]
+# list_classifier = [svm]
 
 # clf = xgboost(gcv=True)
 # clf = random_forest(gcv=grid_search)
