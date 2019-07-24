@@ -35,22 +35,23 @@ def load_model(model, model_path):
     map_location = 'cpu'
     if torch.cuda.is_available():
         map_location = 'cuda:0'
+        if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
+            map_location = 'cuda:1'
     model.load_state_dict(torch.load(model_path, map_location))
     return model
 
 
 def read_data(seed):
-    X = File("w2v_feature_pad.hdf5", "r")["w2v"][2000:7000]
-    # X = np.hstack(X, pd.read_csv("final_features_ml.csv").values)
-    # ml_features = pd.read_csv("final_features_ml.csv").values[2000: 7000]
-    # ml_features = np.pad(ml_features, ((0, 0), (0, X.shape[1]-ml_features.shape[1])), 'constant', constant_values=0)
-    # ml_features = ml_features[..., np.newaxis]
+    X = File("w2v_feature_pad.hdf5", "r")["w2v"][3000:9000]
+    ml_features = pd.read_csv("final_features_ml.csv").values[3000:9000]
+    ml_features = np.pad(ml_features, ((0, 0), (0, X.shape[1]-ml_features.shape[1])), 'constant', constant_values=0)
+    ml_features = ml_features[..., np.newaxis]
     # ml_features = np.broadcast_to(ml_features, (ml_features.shape[0], ml_features.shape[1], 300))
-    # ml_features = np.broadcast_to(ml_features, X.shape)
+    ml_features = np.broadcast_to(ml_features, X.shape)
 
     # X = np.array([X, ml_features])
 
-    labels = pd.read_csv("data.csv")["label"][2000:7000]
+    labels = pd.read_csv("data.csv")["label"][3000:9000]
     y = labels.values
     real_fake_count = labels.value_counts()
     class_weight = [labels.shape[0]/real_fake_count['fake'], labels.shape[0]/real_fake_count['real']]
@@ -59,13 +60,13 @@ def read_data(seed):
     # y = LabelEncoder().fit_transform(y).reshape(-1,1)
     y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
     # random sample n rows
-    X, y = zip(*random.sample(list(zip(X,y)), 5000))
+    # X, y = zip(*random.sample(list(zip(X,y)), 5000))
     # split them into 80% training, 10% testing, 10% validation
-    # X_train, X_test, ml_train, ml_test, y_train, y_test = train_test_split(X, ml_features, y, test_size=0.2, random_state=seed)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
+    X_train, X_test, ml_train, ml_test, y_train, y_test = train_test_split(X, ml_features, y, test_size=0.2, random_state=seed)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=seed)
     X_valid, X_test, y_valid, y_test = train_test_split(X_test, y_test, test_size=0.5, random_state=seed)
-    # X_train = [X_train, ml_train]
-    # X_test = [X_test, ml_test]
+    X_train = [X_train, ml_train]
+    X_test = [X_test, ml_test]
     return X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight
 
 
@@ -73,11 +74,6 @@ def data_preparation(seed):
     model_path = 'model.pkl'
     batch_size = 256
     X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight = read_data(seed)
-
-    # X_train = np.swapaxes(X_train, 0, 1)
-    # X_valid = np.swapaxes(X_valid, 0, 1)
-    # X_test = np.swapaxes(X_test, 0, 1)
-
 
     train_set = FakenewsDataset(X_train, y_train)
     print('Training size =', len(train_set.y))

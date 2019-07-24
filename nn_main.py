@@ -14,20 +14,14 @@ data_dict = data_preparation(seed)
 end = time.time()
 duration = end - start
 print("Data preparation took {} hour {} min {} sec".format(duration // 3600, (duration % 3600) // 60, int(duration % 60)))
-#
-# grid_search = {
-#     "out_size1": [2048],
-#     "out_size2": [1536],
-#     "lstm_drop": [0.5],
-#     "drop1": [0.0],
-#     "drop2": [0.05],
-#     "drop3": [0.05*i for i in range(11)],
-# }
+
 grid_search = {
-    "out_size1": [2 ** i for i in range(5, 10)],
-    "out_size2": [2 ** i for i in range(4, 9)],
-    # "out_size1": [512],
-    # "out_size2": [256],
+    # "out_size1": [2 ** i for i in range(5, 10)],
+    # "out_size2": [2 ** i for i in range(4, 9)],
+    "out_size1": [512],
+    "out_size2": [256],
+    "out_size3": [128],
+    "out_size4": [64],
     # [0.05 * i for i in range(11)]
     "lstm_drop": [0.05],
     "drop1": [0.05],
@@ -35,6 +29,8 @@ grid_search = {
     # "drop1": [0.05 * i for i in range(11)],
     "drop2": [0.05],
     "drop3": [0.05],
+    "drop4": [0.05],
+    "drop5": [0.05],
     "lr": [1e-4]
 }
 

@@ -22,6 +22,7 @@ torch.manual_seed(1)
 torch.cuda.is_available()
 
 GLOBAL_BEST_LOSS = 1e11
+GLOBAL_BEST_Accuracy = 0
 
 # w2v = Word2VecFeatureGenerator()
 
@@ -66,8 +67,12 @@ class Model(nn.Module):
         dropout1 = params['dropout1']
         dropout2 = params['dropout2']
         dropout3 = params['dropout3']
+        dropout4 = params['dropout4']
+        dropout5 = params['dropout5']
         linear_out1 = params['out1']
         linear_out2 = params['out2']
+        linear_out3 = params['out3']
+        linear_out4 = params['out4']
 
         num_layers = params['num_layers']
         embed_dim = params['embed_dim']
@@ -86,8 +91,12 @@ class Model(nn.Module):
         self.drop1 = nn.Dropout(dropout1)
         self.drop2 = nn.Dropout(dropout2)
         self.drop3 = nn.Dropout(dropout3)
+        self.drop4 = nn.Dropout(dropout4)
+        self.drop5 = nn.Dropout(dropout5)
         self.out1 = nn.Linear(linear_out1, linear_out2)
-        self.out2 = nn.Linear(linear_out2, params["num_classes"])
+        self.out2 = nn.Linear(linear_out2, linear_out3)
+        self.out3 = nn.Linear(linear_out3, linear_out4)
+        self.out4 = nn.Linear(linear_out4, params["num_classes"])
         # sigmoid
         # self.sigmoid = torch.sigmoid()
         # self.loss = nn.BCELoss()
@@ -105,6 +114,8 @@ class Model(nn.Module):
         # pooling
         r_avg = torch.mean(lstm, dim=1)  # [b,h]
         r_max = torch.max(lstm, dim=1)[0]  # [b,h]
+
+
         r = torch.cat([r_avg, r_max, r_att], -1)  # [b,h*3]
 
         # concatenate with local part
@@ -113,8 +124,12 @@ class Model(nn.Module):
 
         r = self.act(self.out1(self.drop2(r)))
 
+        r = self.act(self.out2(self.drop3(r)))
+
+        r = self.act(self.out3(self.drop4(r)))
+
         # no activation
-        r = self.out2(self.drop3(r))
+        r = self.out4(self.drop5(r))
         # r = F.softmax(r)
         r = torch.sigmoid(r)
         return r
@@ -123,8 +138,8 @@ class Model(nn.Module):
 class Train_Model(object):
     def train_model(self, **kwargs):
         train_args = {
-            "epochs": 30,
-            "batch_size": 128,
+            "epochs": 100,
+            "batch_size": 256,
             "validate": True,
             "save_best_dev": True,
             "use_cuda": True,
@@ -141,9 +156,13 @@ class Train_Model(object):
         grid = {
             'out1': kwargs["out_size1"],
             'out2': kwargs["out_size2"],
+            'out3': kwargs["out_size3"],
+            'out4': kwargs["out_size4"],
             "dropout1": kwargs["drop1"],
             "dropout2": kwargs["drop2"],
             "dropout3": kwargs["drop3"],
+            "dropout4": kwargs["drop4"],
+            "dropout5": kwargs["drop5"],
             "dropout": kwargs["lstm_drop"],
             "lr": kwargs["lr"]
         }
@@ -152,6 +171,8 @@ class Train_Model(object):
         device = 'cpu'
         if torch.cuda.is_available() and train_args["use_cuda"]:
             device = 'cuda:0'
+            if round(torch.cuda.memory_allocated(0)/1024**3,1) > 0.3:
+                device = 'cuda:1'
         print("Start training")
         # load train data
         train_data = kwargs["train_data"]
@@ -163,17 +184,16 @@ class Train_Model(object):
         # if kwargs["validate"]:
         vali_acc = []
         train_acc = 0
-        best_acc = 0
 
         for epoch in range(1, train_args["epochs"] + 1):
             model.train()
             # one forward and backward pass
             for index, (data, label) in enumerate(train_data, 1):
-                # ml_features = Variable(torch.tensor(np.delete(data[1][:, :, 0].numpy(),
-                #                                  np.argwhere(np.all(data[1][:, :, 0].numpy()[..., :] == 0, axis=0)),
-                #                                  axis=1)))
-                # data = [Variable(data[0].cuda()),Variable(ml_features.cuda())]
-                data = Variable(data.cuda())
+                ml_features = Variable(torch.tensor(np.delete(data[1][:, :, 0].numpy(),
+                                                 np.argwhere(np.all(data[1][:, :, 0].numpy()[..., :] == 0, axis=0)),
+                                                 axis=1)))
+                data = [Variable(data[0].cuda()),Variable(ml_features.cuda())]
+                # data = Variable(data.cuda())
                 label = Variable(label.cuda())
                 optimizer.zero_grad()
 
@@ -194,20 +214,21 @@ class Train_Model(object):
                           .format(epoch, index, loss.item()))
 
             train_acc = train_acc / len(train_data.dataset)
-            torch.cuda.empty_cache()
+
             print("Train Accuracy: {:>4.6}".format(train_acc))
             if train_args["validate"]:
                 test_model = Test_Model()
                 default_valid_args = {
-                    "batch_size": 128,  # max(8, self.batch_size // 10),
+                    "batch_size": 256,  # max(8, self.batch_size // 10),
                     "use_cuda": train_args["use_cuda"],
                     "class_weight": train_args["class_weight"]
                 }
 
                 test_acc, truth = test_model.test(model, kwargs['validation_data'], **default_valid_args)
                 print("Validate Accuracy: {:>4.6}".format(test_acc))
-                if test_acc > best_acc:
-                    best_acc = test_acc
+                global GLOBAL_BEST_Accuracy
+                if test_acc > GLOBAL_BEST_Accuracy:
+                    GLOBAL_BEST_Accuracy = test_acc
                     save_model(model, "./model.pkl", grid)
                     print("Current Grid Parameters", grid)
                     print("Saved better model selected by validation.")
@@ -222,6 +243,7 @@ class Train_Model(object):
             os.remove('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
         plt.savefig('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
         plt.clf()
+        torch.cuda.empty_cache()
 
 
 class Test_Model(object):
@@ -231,6 +253,8 @@ class Test_Model(object):
     def test(self, model, valid_data, **kwargs):
         if torch.cuda.is_available() and kwargs["use_cuda"]:
             self.device = 'cuda:0'
+            if round(torch.cuda.memory_allocated(0)/1024**3,1) > 0.3:
+                self.device = 'cuda:1'
 
         model = model.to(self.device)
 
@@ -264,6 +288,7 @@ class Test_Model(object):
         test_acc = accuracy_score(truth.cpu(), pred.cpu())
         print(classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real']))
         # test_acc = balanced_accuracy_score(truth.cpu(), pred.cpu(), weight.cpu())
+        torch.cuda.empty_cache()
         return test_acc, truth
 
 def predict(**kwargs):
@@ -282,7 +307,7 @@ def predict(**kwargs):
         "embed_dim": 300,
         "num_layers": 1,
         "hidden_dim": 256,
-        "batch_size": 128,
+        "batch_size": 256,
         "class_weight": kwargs["class_weight"]
     }
 
@@ -294,6 +319,8 @@ def predict(**kwargs):
     device = 'cpu'
     if torch.cuda.is_available():
         device = 'cuda:0'
+        if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
+            device = 'cuda:1'
     model = model.to(device)
 
     model.eval()
@@ -321,6 +348,7 @@ def predict(**kwargs):
     print("[Final tester] {}".format(", ".join(
         [str(key) + "=" + "{:.5f}".format(value)
          for key, value in result_metrics.items()])))
+    torch.cuda.empty_cache()
     return pred.cpu(), truth.cpu()
 
 def best_eval_result(eval_results, **kwargs):
