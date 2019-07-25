@@ -73,9 +73,9 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # sme = SMOTEENN(random_state=1)
 # X_train, y_train = sme.fit_resample(X_train, y_train)
 
-grid_search = False
+grid_search = True
 class_weights = "balanced"
-# class_weights = False
+# class_weights = None
 # class_weights = {str(index): float(value) for index, value in enumerate(compute_class_weight('balanced', np.unique(y_train), y_train))}
 list_classifier = [logistic_reg, random_forest, ada_boost, dt, knn, svm, xgboost]
 # list_classifier = [svm]

@@ -26,6 +26,8 @@ def load_model(model, model_path):
     map_location = 'cpu'
     if torch.cuda.is_available():
         map_location = 'cuda:0'
+        if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
+            map_location = 'cuda:1'
     model.load_state_dict(torch.load(model_path, map_location))
     return model
 

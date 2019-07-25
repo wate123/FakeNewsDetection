@@ -138,9 +138,10 @@ class Word2VecFeatureGenerator(object):
                     temp_body_token[index] = np.zeros(300, )
             w2vs.append(np.concatenate((temp_title_token, temp_body_token), axis=0))
         print("Done")
-        with h5py.File("w2v_feature_pad.hdf5", "w") as f:
-            f.create_dataset("w2v", data=w2vs)
-        print("Save into w2v_feature_pad.hdf5")
+        np.save('w2v_feature_pad.npy', np.array(w2vs))
+        # with h5py.File("w2v_feature_pad.hdf5", "w") as f:
+        #     f.create_dataset("w2v", data=w2vs)
+        print("Save into w2v_feature_pad.npy")
         # combine = np.array(title_vec + body_vec)
         # with h5py.File("w2v_feature_pad.hdf5", "w") as f:
         #     for atitle, abody in zip(self.title_uni_list, self.body_uni_list):

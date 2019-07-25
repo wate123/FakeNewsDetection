@@ -17,14 +17,16 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import os
 import pickle
+from tensorboardX import SummaryWriter
 
-torch.manual_seed(1)
-torch.cuda.is_available()
 
 GLOBAL_BEST_LOSS = 1e11
 GLOBAL_BEST_Accuracy = 0
+if torch.cuda.is_available():
+    device = 'cuda:0'
+    if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
+        device = 'cuda:1'
 
-# w2v = Word2VecFeatureGenerator()
 
 class LSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, batch_size, dropout=0, bidirectional=False, output_dim=1, num_layers=2):
@@ -67,18 +69,16 @@ class Model(nn.Module):
         dropout1 = params['dropout1']
         dropout2 = params['dropout2']
         dropout3 = params['dropout3']
-        dropout4 = params['dropout4']
-        dropout5 = params['dropout5']
         linear_out1 = params['out1']
         linear_out2 = params['out2']
-        linear_out3 = params['out3']
-        linear_out4 = params['out4']
 
         num_layers = params['num_layers']
         embed_dim = params['embed_dim']
 
         hidden_dim = params['hidden_dim']
-        linear_in = params['hidden_dim'] * 3
+        # linear_in = params['hidden_dim'] * 3
+        linear_in = 902
+        # linear_in = 1760
 
         dropout = params['dropout']
 
@@ -91,22 +91,20 @@ class Model(nn.Module):
         self.drop1 = nn.Dropout(dropout1)
         self.drop2 = nn.Dropout(dropout2)
         self.drop3 = nn.Dropout(dropout3)
-        self.drop4 = nn.Dropout(dropout4)
-        self.drop5 = nn.Dropout(dropout5)
         self.out1 = nn.Linear(linear_out1, linear_out2)
-        self.out2 = nn.Linear(linear_out2, linear_out3)
-        self.out3 = nn.Linear(linear_out3, linear_out4)
-        self.out4 = nn.Linear(linear_out4, params["num_classes"])
+        self.out2 = nn.Linear(linear_out2, params["num_classes"])
         # sigmoid
         # self.sigmoid = torch.sigmoid()
         # self.loss = nn.BCELoss()
         self.loss = nn.BCELoss(weight=torch.FloatTensor(params['class_weight']))
 
     def forward(self, data):
-        lstm = self.lstm(data)
+        with SummaryWriter(comment='Model') as w:
+            w.add_graph(self.lstm, data[0])
+        lstm = self.lstm(data[0])
 
         att = self.fc_att(lstm).squeeze(-1)  # [b,sl,h]->[b,sl]
-
+        # att = torch.cat([att, data[1]], -1)
         att = F.softmax(att, dim=-1)  # [b,sl]
 
         r_att = torch.sum(att.unsqueeze(-1) * lstm, dim=1)  # [b,h]
@@ -115,8 +113,7 @@ class Model(nn.Module):
         r_avg = torch.mean(lstm, dim=1)  # [b,h]
         r_max = torch.max(lstm, dim=1)[0]  # [b,h]
 
-
-        r = torch.cat([r_avg, r_max, r_att], -1)  # [b,h*3]
+        r = torch.cat([r_avg, r_max, r_att, data[1]], -1)  # [b,h*3]
 
         # concatenate with local part
 
@@ -124,12 +121,9 @@ class Model(nn.Module):
 
         r = self.act(self.out1(self.drop2(r)))
 
-        r = self.act(self.out2(self.drop3(r)))
-
-        r = self.act(self.out3(self.drop4(r)))
 
         # no activation
-        r = self.out4(self.drop5(r))
+        r = self.out2(self.drop3(r))
         # r = F.softmax(r)
         r = torch.sigmoid(r)
         return r
@@ -137,9 +131,10 @@ class Model(nn.Module):
 
 class Train_Model(object):
     def train_model(self, **kwargs):
+        torch.manual_seed(kwargs['seed'])
         train_args = {
-            "epochs": 100,
-            "batch_size": 256,
+            "epochs": 200,
+            "batch_size": kwargs['batch_size'],
             "validate": True,
             "save_best_dev": True,
             "use_cuda": True,
@@ -147,7 +142,7 @@ class Train_Model(object):
             "model_path": kwargs['model_path'],
             "eval_metrics": "bce",
             "embed_dim": 300,
-            "num_layers": 1,
+            "num_layers": 2,
             "hidden_dim": 256,
             "n_print": 1000,
             "class_weight": kwargs["class_weight"],
@@ -156,13 +151,9 @@ class Train_Model(object):
         grid = {
             'out1': kwargs["out_size1"],
             'out2': kwargs["out_size2"],
-            'out3': kwargs["out_size3"],
-            'out4': kwargs["out_size4"],
             "dropout1": kwargs["drop1"],
             "dropout2": kwargs["drop2"],
             "dropout3": kwargs["drop3"],
-            "dropout4": kwargs["drop4"],
-            "dropout5": kwargs["drop5"],
             "dropout": kwargs["lstm_drop"],
             "lr": kwargs["lr"]
         }
@@ -188,11 +179,8 @@ class Train_Model(object):
         for epoch in range(1, train_args["epochs"] + 1):
             model.train()
             # one forward and backward pass
-            for index, (data, label) in enumerate(train_data, 1):
-                ml_features = Variable(torch.tensor(np.delete(data[1][:, :, 0].numpy(),
-                                                 np.argwhere(np.all(data[1][:, :, 0].numpy()[..., :] == 0, axis=0)),
-                                                 axis=1)))
-                data = [Variable(data[0].cuda()),Variable(ml_features.cuda())]
+            for index, (w2v, ml, label) in enumerate(train_data, 1):
+                data = [Variable(w2v.cuda()),Variable(ml.cuda())]
                 # data = Variable(data.cuda())
                 label = Variable(label.cuda())
                 optimizer.zero_grad()
@@ -208,23 +196,28 @@ class Train_Model(object):
                 _, truth = torch.max(label.data, 1)
                 train_acc += torch.sum(prediction == truth).item()
                 # train_acc = accuracy_score(truth.cpu(), prediction.cpu())
-
+                with SummaryWriter(comment='Training Loss') as w:
+                    w.add_scalar("train loss", loss.item())
                 if train_args["n_print"] > 0 and index % train_args["print_every_step"] == 0:
                     print("[epoch: {:>3} step: {}] train loss: {:>4.6}"
                           .format(epoch, index, loss.item()))
 
             train_acc = train_acc / len(train_data.dataset)
+            with SummaryWriter(comment='Training Accuracy') as w:
+                w.add_scalar("train_acc", train_acc)
 
             print("Train Accuracy: {:>4.6}".format(train_acc))
             if train_args["validate"]:
                 test_model = Test_Model()
                 default_valid_args = {
-                    "batch_size": 256,  # max(8, self.batch_size // 10),
+                    "batch_size": kwargs['batch_size'],  # max(8, self.batch_size // 10),
                     "use_cuda": train_args["use_cuda"],
                     "class_weight": train_args["class_weight"]
                 }
 
                 test_acc, truth = test_model.test(model, kwargs['validation_data'], **default_valid_args)
+                with SummaryWriter(comment='Validate Accuracy') as w:
+                    w.add_scalar("validate_acc", test_acc)
                 print("Validate Accuracy: {:>4.6}".format(test_acc))
                 global GLOBAL_BEST_Accuracy
                 if test_acc > GLOBAL_BEST_Accuracy:
@@ -260,10 +253,11 @@ class Test_Model(object):
 
         model.eval()
         output = []
+        test_acc = 0.0
         ground_truth = []
 
-        for index, (data, label) in enumerate(valid_data):
-            data = Variable(data.cuda())
+        for index, (w2v, ml, label) in enumerate(valid_data):
+            data = [Variable(w2v.cuda()), Variable(ml.cuda())]
             label = Variable(label.cuda())
 
             with torch.no_grad():
@@ -281,15 +275,17 @@ class Test_Model(object):
         _, pred = torch.max(pred, 1)
         _, truth = torch.max(truth, 1)
 
+        test_acc += torch.sum(pred == truth).item()
+        test_acc = test_acc / len(valid_data.dataset)
         # print("[tester] {}".format(", ".join(
         #     [str(key) + "=" + "{:.5f}".format(value)
         #      for key, value in result_metrics.items()])))
         # return result_metrics
-        test_acc = accuracy_score(truth.cpu(), pred.cpu())
+        # test_acc = accuracy_score(truth.cpu(), pred.cpu())
         print(classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real']))
         # test_acc = balanced_accuracy_score(truth.cpu(), pred.cpu(), weight.cpu())
         torch.cuda.empty_cache()
-        return test_acc, truth
+        return test_acc, pred
 
 def predict(**kwargs):
     # define model
@@ -305,9 +301,9 @@ def predict(**kwargs):
         "dropout3": final_grid["dropout3"],
         "dropout": final_grid["dropout"],
         "embed_dim": 300,
-        "num_layers": 1,
+        "num_layers": 2,
         "hidden_dim": 256,
-        "batch_size": 256,
+        "batch_size": kwargs['batch_size'],
         "class_weight": kwargs["class_weight"]
     }
 
@@ -325,14 +321,15 @@ def predict(**kwargs):
 
     model.eval()
     batch_output = []
+    test_acc = 0
     truth_list = []
 
-    for i, (datas, labels) in enumerate(data_test):
-        datas = Variable(datas.cuda())
+    for i, (w2v, ml,labels) in enumerate(data_test):
+        data = [Variable(w2v.cuda()), Variable(ml.cuda())]
         labels = Variable(labels.cuda())
 
         with torch.no_grad():
-            prediction = model(datas)
+            prediction = model(data)
 
         batch_output.append(prediction.detach())
         truth_list.append(labels.detach())
@@ -340,14 +337,20 @@ def predict(**kwargs):
     pred = torch.cat(batch_output, 0)
     truth = torch.cat(truth_list, 0)
 
-    loss = nn.BCELoss(weight=torch.FloatTensor(kwargs['class_weight']).cuda())
-    result_metrics = {"bce": loss(pred, truth)}
+    _, pred = torch.max(pred, 1)
+    _, truth = torch.max(truth, 1)
+
+    test_acc += torch.sum(pred == truth).item()
+    test_acc = test_acc / len(data_test.dataset)
+
+    # loss = nn.BCELoss(weight=torch.FloatTensor(kwargs['class_weight']).cuda())
+    # result_metrics = {"bce": loss(pred, truth)}
 
     # test_acc = classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real'])
-    # print("[Final tester] Accuracy: {}".format(test_acc))
-    print("[Final tester] {}".format(", ".join(
-        [str(key) + "=" + "{:.5f}".format(value)
-         for key, value in result_metrics.items()])))
+    print("[Final tester] Accuracy: {:>4.6}".format(test_acc))
+    # print("[Final tester] {}".format(", ".join(
+    #     [str(key) + "=" + "{:.5f}".format(value)
+    #      for key, value in result_metrics.items()])))
     torch.cuda.empty_cache()
     return pred.cpu(), truth.cpu()
 
@@ -373,47 +376,4 @@ def best_eval_result(eval_results, **kwargs):
             GLOBAL_BEST_LOSS = loss
             return True
     return False
-# model = LSTM(EMBEDDING_DIM, HIDDEN_DIM, batch_size=6, num_layers=1)
-#
-# loss_fn = torch.nn.MSELoss(size_average=False)
-#
-# optimiser = torch.optim.Adam(model.parameters(), lr=0.2)
-#
-# #####################
-# # Train model
-# #####################
-# num_epochs = 10
-#
-#
-# sample_train = pd.read_csv("w2v_feature.csv").sample(800)
-# labels = sample_train["label"]
-# sample_train = sample_train.drop('label', axis=1).values
-# X_train, X_test, y_train, y_test = train_test_split(sample_train, labels, test_size=0.2, random_state=1)
-#
-# hist = np.zeros(num_epochs)
-#
-# for t in range(num_epochs):
-#     # Clear stored gradient
-#     model.zero_grad()
-#
-#     # Initialise hidden state
-#     # Don't do this if you want your LSTM to be stateful
-#     model.hidden = model.init_hidden()
-#
-#     print(type(X_train))
-#     # Forward pass
-#     y_pred = model(X_train)
-#
-#     loss = loss_fn(y_pred, y_train)
-#     if t % 100 == 0:
-#         print("Epoch ", t, "MSE: ", loss.item())
-#     hist[t] = loss.item()
-#
-#     # Zero out gradient, else they will accumulate between epochs
-#     optimiser.zero_grad()
-#
-#     # Backward pass
-#     loss.backward()
-#
-#     # Update parameters
-#     optimiser.step()
+
