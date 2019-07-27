@@ -1,6 +1,6 @@
 import json
 import re
-from os import walk
+from os import walk, listdir
 from os.path import join, exists
 import nltk
 from gensim.models.phrases import Phrases, Phraser
@@ -62,6 +62,7 @@ def preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stop
         tokens_stemmed = [x for x in tokens_stemmed if x not in stopwords]
     return tokens_stemmed
 
+
 # def spell_correction(text):
 #
 #     spell = SpellChecker()
@@ -100,7 +101,7 @@ def remove_emoji(text):
                                u"\ufe0f"
                                "]+", flags=re.UNICODE)
 
-    #removes all specified emoji found in text
+    # removes all specified emoji found in text
     words = emoji_pattern.sub(r'', text)
     return words
 
@@ -122,10 +123,10 @@ class NewsContent(object):
         else:
             self.sites = sites
             self.news_types = news_types
-        self.list_news_path = self.get_list_news_files()
+        self.list_news_path = self.get_list_files("news")
+        self.list_tweets_path = self.get_list_files("tweets")
         # self.list_news_path = Parallel(n_jobs=-1)(delayed(list(self.get_list_news_files())))
         # self.feature_type = feature_type
-
 
     # def __iter__(self):
     #     for file_path in self.get_list_news_files():
@@ -154,75 +155,89 @@ class NewsContent(object):
                 = title or body  yield tile or body with preprocessing one by one.
 
         """
-        # if exists(path="data.csv"):
-        #     return pd.read_csv("data.csv")
-        # else:
-        # reading through directory
-        for file_path in self.list_news_path:
-            with open(file_path, 'r') as f:
+        if feature_type == "tweets":
+            for path in self.list_tweets_path:
+                with open(path, 'r') as f:
+                    tweets = preprocess(json.load(f))
+                    yield tweets
+        else:
+            # reading through directory
+            for file_path in self.list_news_path:
+                with open(file_path, 'r') as f:
 
-                # open document to read and assign to doc
-                doc = json.load(f)
-                # skip the empty title or body
-                if doc['title'] == "" or doc['text'] == "":
-                    pass
-                else:
-                    # to extract all data from news content
-                    if feature_type == "all":
-                        news = doc['title'] + doc['text']
-
-                        # preprocesses news content
-                        words = preprocess(news)
-                        yield words
-
-                    # to extract title and text as a pair
-                    elif feature_type == "pair":
-                        title = preprocess(doc["title"])
-                        body = preprocess(doc['text'])
-                        yield title, body
-                        # if not title or not body:
-                        #     pass
-                        # else:
-                        #     yield title, body
-
-                    # else you only need either title or body
+                    # open document to read and assign to doc
+                    doc = json.load(f)
+                    # skip the empty title or body
+                    if doc['title'] == "" or doc['text'] == "":
+                        pass
                     else:
-                        assert feature_type in doc.keys(), "feature not in the document: " + file_path
-                        # without stemming
-                        # CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
-                        #                   strip_numeric, remove_stopwords]
+                        # to extract all data from news content
+                        if feature_type == "all":
+                            news = doc['title'] + doc['text']
 
-                        feature = doc[feature_type]
-                        words = preprocess(feature)
-                        # using alternative preprocessing function
-                        # words = preprocess_string(words, filters=CUSTOM_FILTERS)
-                        yield words
+                            # preprocesses news content
+                            words = preprocess(news)
+                            yield words
+
+                        # to extract title and text as a pair
+                        elif feature_type == "pair":
+                            title = preprocess(doc["title"])
+                            body = preprocess(doc['text'])
+                            yield title, body
+                            # if not title or not body:
+                            #     pass
+                            # else:
+                            #     yield title, body
+
+                        # else you only need either title or body
+                        else:
+                            assert feature_type in doc.keys(), "feature not in the document: " + file_path
+                            # without stemming
+                            # CUSTOM_FILTERS = [lambda x: x.lower(), strip_tags, strip_punctuation, strip_multiple_whitespaces,
+                            #                   strip_numeric, remove_stopwords]
+
+                            feature = doc[feature_type]
+                            words = preprocess(feature)
+                            # using alternative preprocessing function
+                            # words = preprocess_string(words, filters=CUSTOM_FILTERS)
+                            yield words
 
     def save_in_sentence_form(self):
         """Generate a json file for each news that contains their tile, body, and label"""
-        big_dict = []
+        data = pd.DataFrame()
 
         # iterating through directories
-        for file_path in self.list_news_path:
+        for index, file_path in enumerate(self.list_news_path):
+            instance = {}
             with open(file_path, 'r') as f:
                 # loading news content into labelled sections
                 doc = json.load(f)
                 if doc["title"] == "" or doc["text"] == "":
-                    pass
+                    continue
                 else:
-                    big_dict.append(
-                        {"title": remove_emoji(doc["title"]),
-                         "body": remove_emoji(doc["text"]),
-                         "label": str(file_path.split('/')[-3])})
+                    instance = {"title": remove_emoji(doc["title"]),
+                                   "body": remove_emoji(doc["text"]),
+                                   "label": str(file_path.split('/')[-3])}
+                dirs = "/".join(file_path.split('/')[:-2])
+                tweets_dirs = listdir(dirs + "/tweets")
+                retweets_dirs = listdir(dirs + "/retweets")
+                tweets_data = []
+                for tweet in tweets_dirs:
+                    with open(tweet, 'r') as f:
+                        doc = json.load(f)
+                        instance.update({"tweets": {'id': doc['id'], tweet: preprocess(doc['text'])}})
+
+
+
+
+
         # write contents of dictionary to file
         print(len(big_dict))
         pd.DataFrame(big_dict).to_csv("data.csv", index=False)
-        # with open("data.json", 'w+') as file:
-        #     json.dump(big_dict, file)
 
-    def get_list_news_files(self):
+    def get_list_files(self, type_file):
         """Return files path iterator of news"""
-        list_news_files = []
+        list_files = []
         for site in self.sites:
             for news_type in self.news_types:
 
@@ -231,8 +246,10 @@ class NewsContent(object):
                 news_path = join(site_folder, news_type)
 
                 # only obtaining the news articles at this time
-                exclude = ["tweets", "retweets", "user_profile", "user_timeline_tweets", "user_followers",
-                           "user_following"]
+                exclude = {"tweets", "retweets", "user_profile", "user_timeline_tweets", "user_followers",
+                           "user_following"}
+                if type_file in exclude:
+                    exclude.remove(type_file)
 
                 # iterating through directories only focusing on ones containing the news content
                 for root, dirs, files in walk(news_path, topdown=True):
@@ -242,12 +259,12 @@ class NewsContent(object):
                     for f in files:
                         if f.endswith(".json") and len(dirs) == 0:
                             # yield join(root, f)
-                            list_news_files.append(join(root, f))
+                            if not type_file == 'news':
+                                if f == 'news content.json':
+                                    continue
+                            list_files.append(join(root, f))
         # print(len(list_news_files))
-        return list_news_files
-
-    # def save_tweets_tocsv(self):
-    #     self.
+        return list_files
 
 
 def get_ngram(n, sentence):
@@ -256,12 +273,12 @@ def get_ngram(n, sentence):
     """
     if n == 1:
         return sentence
-    
+
     # create phrases model to find words and ngrams that occur at least once
     ngram = Phraser(Phrases(sentence, min_count=1, threshold=1))
 
     # for bigrams and higher grams
-    for i in range(3,n):
+    for i in range(3, n):
         ngram = Phraser(Phrases(ngram[sentence], min_count=1, threshold=1))
     return ngram[sentence]
 
@@ -280,7 +297,7 @@ def tsne_similar_word_plot(model, word):
 
     # create TSNE model with 2 dimensions, using principal component analysis    
     tsne_model = TSNE(perplexity=40, n_components=2, init='pca', n_iter=2500, random_state=23)
-    
+
     # fits tokens into embedded space and returns transformation of tokens
     new_values = tsne_model.fit_transform(tokens)
 
@@ -307,11 +324,12 @@ def tsne_similar_word_plot(model, word):
     plt.show()
 
 
-def division(x, y, val = 0.0):
+def division(x, y, val=0.0):
     """division function used to divide two number"""
     if y != 0.0:
-        val = float(x)/y
+        val = float(x) / y
     return val
+
 
 def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
                         n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5)):
@@ -396,13 +414,15 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     plt.show()
     # return plt
 
-def simplifiedTest(target,parameters, X_train,X_test,y_train,y_test,outputResult):
+
+def simplifiedTest(target, parameters, X_train, X_test, y_train, y_test, outputResult):
     model = target(**parameters)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     F1 = f1_score(y_test, y_pred, average='weighted')
-    #return (parameters,F1)
-    outputResult.put((parameters,F1))
+    # return (parameters,F1)
+    outputResult.put((parameters, F1))
+
 
 def myParallel(model, parameter, X_train, X_valid, y_train, y_valid, new_paras):
     parallelProcesses = 40

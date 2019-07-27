@@ -133,12 +133,12 @@ class Train_Model(object):
     def train_model(self, **kwargs):
         torch.manual_seed(kwargs['seed'])
         train_args = {
-            "epochs": 200,
+            "epochs": 30,
             "batch_size": kwargs['batch_size'],
             "validate": True,
             "save_best_dev": True,
             "use_cuda": True,
-            "print_every_step": 10,
+            "print_every_step": 20,
             "model_path": kwargs['model_path'],
             "eval_metrics": "bce",
             "embed_dim": 300,
@@ -282,7 +282,7 @@ class Test_Model(object):
         #      for key, value in result_metrics.items()])))
         # return result_metrics
         # test_acc = accuracy_score(truth.cpu(), pred.cpu())
-        print(classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real']))
+        # print(classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real']))
         # test_acc = balanced_accuracy_score(truth.cpu(), pred.cpu(), weight.cpu())
         torch.cuda.empty_cache()
         return test_acc, pred
@@ -346,8 +346,9 @@ def predict(**kwargs):
     # loss = nn.BCELoss(weight=torch.FloatTensor(kwargs['class_weight']).cuda())
     # result_metrics = {"bce": loss(pred, truth)}
 
-    # test_acc = classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real'])
+    # test_acc =
     print("[Final tester] Accuracy: {:>4.6}".format(test_acc))
+    # print(classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real']))
     # print("[Final tester] {}".format(", ".join(
     #     [str(key) + "=" + "{:.5f}".format(value)
     #      for key, value in result_metrics.items()])))

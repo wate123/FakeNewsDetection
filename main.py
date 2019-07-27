@@ -25,7 +25,8 @@ random.seed(1)
 # # call NewsContent class to preprocess/tokenize the news content
 # data = NewsContent('../fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
 data = NewsContent('../fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
-# save_as_line_sentence(data.get_features(), "news_corpus.txt")
+save_as_line_sentence(data.get_features(), "news_corpus.txt")
+save_as_line_sentence(data.get_features("tweets"), "tweets_corpus.txt")
 data.save_in_sentence_form()
 
 feature_generator = [CountFeatureGenerator(), SentimentFeatureGenerator(), SvdFeature()]

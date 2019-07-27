@@ -43,7 +43,7 @@ def load_model(model, model_path):
 
 
 def read_data(seed):
-    X = File("w2v_feature_pad.hdf5", "r")["w2v"][:10000]
+    X = File("w2v_feature_1000pretrain_pad.hdf5", "r")["w2v"][:10000]
     # X = np.load("w2v_feature_pad.npy")[3000:9000]
     ml_features = pd.read_csv("final_features_ml.csv").values[:10000]
     # ml_features = np.pad(ml_features, ((0, 0), (0, X.shape[1]-ml_features.shape[1])), 'constant', constant_values=0)
@@ -73,7 +73,7 @@ def read_data(seed):
 
 def data_preparation(seed):
     model_path = 'model.pkl'
-    batch_size = 64
+    batch_size = 256
     X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight = read_data(seed)
 
     train_set = FakenewsDataset(X_train, y_train)

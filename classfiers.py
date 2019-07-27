@@ -13,7 +13,7 @@ import time, datetime
 def ada_boost(gcv, class_weight, cv=1):
     grid_C = [0.1 * i for i in range(1, 21)]
     grid_N = [10 * i for i in range(1, 21)]
-    if class_weight is not False:
+    if class_weight is not None:
         DT_para = DTC(max_depth=3, criterion="entropy", random_state=1, class_weight=class_weight)
     else:
         DT_para = DTC(max_depth=3, criterion="entropy", random_state=1)
@@ -22,7 +22,13 @@ def ada_boost(gcv, class_weight, cv=1):
     if not gcv:
         print("Start AdaBoost training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
-        clf = AdaBoostClassifier()
+        clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(class_weight='balanced', criterion='entropy',
+                                                                       max_depth=None, max_features=None,
+                                                                       max_leaf_nodes=None, min_impurity_decrease=0.0,
+                                                                       min_impurity_split=None, min_samples_leaf=1,
+                                                                       min_samples_split=2, min_weight_fraction_leaf=0.0,
+                                                                       presort=False, random_state=1, splitter='best'),
+                                 learning_rate=1.8, n_estimators=10, random_state=1)
     else:
         print("Start AdaBoost hyperperameter tuning")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
@@ -39,11 +45,12 @@ def knn(gcv, class_weight, cv=1):
     print("No Class_weight")
     grid_K = [i for i in range(1, 11)]
     parameters = {'n_neighbors': grid_K, 'weights': ['uniform'], 'algorithm': ('ball_tree', 'kd_tree'),
-                  'leaf_size': [30], 'p': [2], 'metric': ['minkowski'], 'metric_params': [None], 'n_jobs': [None]}
+                  'leaf_size': [30], 'p': [2], 'metric': ['minkowski'], 'metric_params': [None]}
     if not gcv:
         print("Start KNN training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
-        clf = KNeighborsClassifier()
+        clf = KNeighborsClassifier(algorithm='kd_tree', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=40,
+                                   n_neighbors=10, p=2, weights='uniform')
     else:
         print("Start KNN hyperperameter tuning")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
@@ -62,12 +69,14 @@ def dt(gcv, class_weight, cv=1):
                   'max_features': [None], 'random_state': [1], 'max_leaf_nodes': [None], \
                   'min_impurity_decrease': [0.0], 'min_impurity_split': [None],
                   'presort': [False]}
-    if class_weight is not False:
+    if class_weight is not None:
         parameters["class_weight"] = [class_weight]
     if not gcv:
         print("Start Decision Tree training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
-        clf = DTC()
+        clf = DTC(class_weight='balanced', criterion='entropy', max_depth=None, max_features=None, max_leaf_nodes=None,
+                  min_impurity_decrease=0.0, min_impurity_split=None, min_samples_leaf=1, min_samples_split=2,
+                  min_weight_fraction_leaf=0.0, presort=False, random_state=1, splitter='best')
     else:
         print("Start Decision Tree hyperperameter tuning")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
@@ -85,14 +94,14 @@ def svm(gcv, class_weight, cv=1):
     parameters = {'C': grid_C, 'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], 'degree': [1, 2, 3],
                   'gamma': ['auto'], 'coef0': [0.0], 'shrinking': [True], 'probability': [False],
                   'tol': [5e-4], 'cache_size': [200], 'verbose': [False],
-                  'max_iter': [50000], "class_weight": ['balanced'], 'decision_function_shape': ['ovr'], 'random_state': [1], }
-    if class_weight is not False:
+                  'max_iter': [30000], "class_weight": ['balanced'], 'decision_function_shape': ['ovr'], 'random_state': [1], }
+    if class_weight is not None:
         parameters["class_weight"] = [class_weight]
     if not gcv:
         print("Start SVM training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
 
-        clf = SVC(C= 9.5, cache_size= 200, class_weight= 'balanced', coef0= 0.0,
+        clf = SVC(C= 2.5, cache_size= 200, class_weight= 'balanced', coef0= 0.0,
                   decision_function_shape= 'ovr', degree= 1, gamma= 'auto', kernel= 'linear',
                   max_iter= 30000, probability= False, random_state= 1, shrinking= True,
                   tol= 0.0005, verbose= False)
@@ -120,9 +129,9 @@ def random_forest(gcv, class_weight, cv=1):
                   'min_samples_split': [2], 'min_samples_leaf': [1], 'min_weight_fraction_leaf': [0.0],
                   'max_features': ['auto'], 'max_leaf_nodes': [None],
                   'min_impurity_decrease': [0.0], 'min_impurity_split': [None], 'bootstrap': [True],
-                  'oob_score': [False], 'n_jobs': [1], 'random_state': [1], 'verbose': [0],
+                  'oob_score': [False], 'random_state': [1], 'verbose': [0],
                   'warm_start': [False]}
-    if class_weight is not False:
+    if class_weight is not None:
         parameters["class_weight"] = [class_weight]
     if not gcv:
         print("Start Random Forest training")
@@ -131,7 +140,7 @@ def random_forest(gcv, class_weight, cv=1):
                                      max_features='auto',
                                      max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None,
                                      min_samples_leaf=1, min_samples_split=2, min_weight_fraction_leaf=0.0,
-                                     n_estimators=300, n_jobs=1, oob_score=False, random_state=1, verbose=0,
+                                     n_estimators=110, n_jobs=40, oob_score=False, random_state=1, verbose=0,
                                      warm_start=False)
     else:
         print("Start Random Forest hyperperameter tuning")
@@ -153,13 +162,13 @@ def xgboost(gcv, class_weight, cv=1):
                   'subsample': [0.7, 0.8, 0.9, 1.], 'random_state': [1], "num_class": [2, 4, 6]
                   }
     # "scale_pos_weight": [0.31]
-    if class_weight is not False:
+    if class_weight is not None:
         parameters["class_weight"] = [class_weight]
     if not gcv:
         print("Start XGBoost training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
-        clf = xgb.XGBClassifier(booster='dart', learning_rate=0.2, max_depth=6, n_estimators=180, num_class=4,
-                                objective='multi:softmax', random_state=1, subsample=1.0, n_jobs=40, verbosity=0,
+        clf = xgb.XGBClassifier(booster='dart', learning_rate=0.30000000000000004, max_depth=6, n_estimators=120, num_class=6,
+                                objective='multi:softmax', random_state=1, subsample=0.8, n_jobs=40, verbosity=0,
                                 scale_pos_weight=0.31)
     else:
         print("Start XGBoost hyperperameter tuning")
@@ -177,13 +186,13 @@ def logistic_reg(gcv, class_weight, cv=1):
     parameters = {"tol": [5e-4], "C": grid_C, "random_state": [1],
                   "solver": ["newton-cg", "sag", "saga", "lbfgs"],
                   "max_iter": [4000], "multi_class": ["multinomial", "ovr", "auto"]}
-    if class_weight is not False:
+    if class_weight is not None:
         parameters["class_weight"] = [class_weight]
     if not gcv:
         print("Start Logistic Regression training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
-        clf = LogisticRegression(tol=0.0005, C=0.5, max_iter=4000, multi_class='ovr', random_state=1, solver='saga',
-                                 class_weight=class_weight)
+        clf = LogisticRegression(tol=0.0005, C=7.0, max_iter=4000, multi_class='multinomial', random_state=1, solver='sag',
+                                 class_weight=None, n_jobs=40)
     else:
         print("Start Logistic Regression hyperperameter tuning")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
