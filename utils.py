@@ -208,7 +208,7 @@ class NewsContent(object):
 
         # iterating through directories
         for index, file_path in enumerate(self.list_news_path):
-            instance = {}
+            # instance = {}
             with open(file_path, 'r') as f:
                 # loading news content into labelled sections
                 doc = json.load(f)
@@ -221,19 +221,21 @@ class NewsContent(object):
                 dirs = "/".join(file_path.split('/')[:-2])
                 tweets_dirs = listdir(dirs + "/tweets")
                 retweets_dirs = listdir(dirs + "/retweets")
-                tweets_data = []
                 for tweet in tweets_dirs:
                     with open(tweet, 'r') as f:
                         doc = json.load(f)
-                        instance.update({"tweets": {'id': doc['id'], tweet: preprocess(doc['text'])}})
-
-
-
+                        instance.update({doc['id']: preprocess(doc['text'])})
+                for retweet in retweets_dirs:
+                    with open(retweet, 'r') as f:
+                        doc = json.load(f)
+                        instance.update({doc['id']: preprocess(doc['text'])})
+            data.append(instance)
 
 
         # write contents of dictionary to file
-        print(len(big_dict))
-        pd.DataFrame(big_dict).to_csv("data.csv", index=False)
+        print(len(data))
+        data.to_csv("data.csv", index=False)
+        # pd.DataFrame(big_dict).to_csv("data.csv", index=False)
 
     def get_list_files(self, type_file):
         """Return files path iterator of news"""

@@ -16,24 +16,31 @@ duration = end - start
 print("Data preparation took {} hour {} min {} sec".format(duration // 3600, (duration % 3600) // 60, int(duration % 60)))
 
 grid_search = {
-    # "out_size1": [2 ** i for i in range(5, 10)],
-    # "out_size2": [2 ** i for i in range(4, 9)],
+    "out_size1": [2 ** i for i in range(5, 10)],
+    "out_size2": [2 ** i for i in range(4, 9)],
     # "out_size1": [256],
     # "out_size2": [64],
     # pretrain w2v
-    "out_size1": [512],
-    "out_size2": [256],
+    # "out_size1": [512],
+    # "out_size2": [256],
     # [0.05 * i for i in range(11)]
-    # "lstm_drop": [0.05],
-    # "drop1": [0.05],
-    "lstm_drop": [0.05 * i for i in range(11)],
-    "drop1": [0.05 * i for i in range(11)],
+    "lstm_drop": [0.05],
+    "drop1": [0.05],
+    # "lstm_drop": [0.05 * i for i in range(11)],
+    # "drop1": [0.05 * i for i in range(11)],
     # "lstm_drop": [0.05 * i for i in range(11)],
     # "drop1": [0.05 * i for i in range(11)],
     "drop2": [0.05],
     "drop3": [0.05],
-    "lr": [1e-4]
+    "lr": [1.2e-3]
 }
+
+device = 'cpu'
+if torch.cuda.is_available():
+    device = torch.device('cuda:0')
+    if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
+        device = torch.device('cuda:1')
+data_dict.update({"device": device})
 
 start = time.time()
 train = Train_Model()

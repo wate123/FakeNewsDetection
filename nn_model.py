@@ -22,14 +22,10 @@ from tensorboardX import SummaryWriter
 
 GLOBAL_BEST_LOSS = 1e11
 GLOBAL_BEST_Accuracy = 0
-if torch.cuda.is_available():
-    device = 'cuda:0'
-    if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
-        device = 'cuda:1'
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_dim, hidden_dim, batch_size, dropout=0, bidirectional=False, output_dim=1, num_layers=2):
+    def __init__(self, input_dim, hidden_dim, batch_size, dropout=0, bidirectional=False, num_layers=2):
         super(LSTM, self).__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -39,9 +35,6 @@ class LSTM(nn.Module):
         # Define the LSTM layer
         self.lstm = nn.LSTM(self.input_dim, self.hidden_dim, self.num_layers, bias=True,
                             batch_first=True, dropout=dropout, bidirectional=bidirectional)
-
-        # Define the output layer
-        self.linear = nn.Linear(self.hidden_dim, output_dim)
 
     def init_hidden(self):
         # This is what we'll initialise our hidden state as
@@ -96,8 +89,8 @@ class Model(nn.Module):
         # sigmoid
         # self.sigmoid = torch.sigmoid()
         # self.loss = nn.BCELoss()
-        self.loss = nn.BCELoss(weight=torch.FloatTensor(params['class_weight']))
-
+        # self.loss = nn.BCELoss(weight=torch.FloatTensor(params['class_weight']))
+        self.loss = nn.CrossEntropyLoss(weight=torch.FloatTensor(params['class_weight']))
     def forward(self, data):
         with SummaryWriter(comment='Model') as w:
             w.add_graph(self.lstm, data[0])
@@ -125,7 +118,7 @@ class Model(nn.Module):
         # no activation
         r = self.out2(self.drop3(r))
         # r = F.softmax(r)
-        r = torch.sigmoid(r)
+        # r = torch.sigmoid(r)
         return r
 
 
@@ -133,7 +126,7 @@ class Train_Model(object):
     def train_model(self, **kwargs):
         torch.manual_seed(kwargs['seed'])
         train_args = {
-            "epochs": 30,
+            "epochs": 20,
             "batch_size": kwargs['batch_size'],
             "validate": True,
             "save_best_dev": True,
@@ -159,16 +152,16 @@ class Train_Model(object):
         }
 
         train_args.update(grid)
-        device = 'cpu'
-        if torch.cuda.is_available() and train_args["use_cuda"]:
-            device = 'cuda:0'
-            if round(torch.cuda.memory_allocated(0)/1024**3,1) > 0.3:
-                device = 'cuda:1'
+        # device = 'cpu'
+        # if torch.cuda.is_available() and train_args["use_cuda"]:
+        #     device = 'cuda:0'
+        #     if round(torch.cuda.memory_allocated(0)/1024**3,1) > 0.3:
+        #         device = 'cuda:1'
         print("Start training")
         # load train data
         train_data = kwargs["train_data"]
 
-        model = Model(**train_args).to(device)
+        model = Model(**train_args).to(kwargs["device"])
 
         # only once tune hyperparamer
         optimizer = torch.optim.Adam(model.parameters(), lr=kwargs["lr"])
@@ -182,7 +175,7 @@ class Train_Model(object):
             for index, (w2v, ml, label) in enumerate(train_data, 1):
                 data = [Variable(w2v.cuda()),Variable(ml.cuda())]
                 # data = Variable(data.cuda())
-                label = Variable(label.cuda())
+                label = Variable(label.long().cuda())
                 optimizer.zero_grad()
 
                 logits = model(data)
@@ -193,7 +186,7 @@ class Train_Model(object):
                 optimizer.step()
 
                 _, prediction = torch.max(logits.data, 1)
-                _, truth = torch.max(label.data, 1)
+                truth = label.data
                 train_acc += torch.sum(prediction == truth).item()
                 # train_acc = accuracy_score(truth.cpu(), prediction.cpu())
                 with SummaryWriter(comment='Training Loss') as w:
@@ -212,7 +205,8 @@ class Train_Model(object):
                 default_valid_args = {
                     "batch_size": kwargs['batch_size'],  # max(8, self.batch_size // 10),
                     "use_cuda": train_args["use_cuda"],
-                    "class_weight": train_args["class_weight"]
+                    "class_weight": train_args["class_weight"],
+                    "device": kwargs['device']
                 }
 
                 test_acc, truth = test_model.test(model, kwargs['validation_data'], **default_valid_args)
@@ -240,16 +234,14 @@ class Train_Model(object):
 
 
 class Test_Model(object):
-    def __init__(self):
-        self.device = 'cpu'
 
     def test(self, model, valid_data, **kwargs):
-        if torch.cuda.is_available() and kwargs["use_cuda"]:
-            self.device = 'cuda:0'
-            if round(torch.cuda.memory_allocated(0)/1024**3,1) > 0.3:
-                self.device = 'cuda:1'
+        # if torch.cuda.is_available() and kwargs["use_cuda"]:
+        #     self.device = 'cuda:0'
+        #     if round(torch.cuda.memory_allocated(0)/1024**3,1) > 0.3:
+        #         self.device = 'cuda:1'
 
-        model = model.to(self.device)
+        model = model.to(kwargs['device'])
 
         model.eval()
         output = []
@@ -258,7 +250,7 @@ class Test_Model(object):
 
         for index, (w2v, ml, label) in enumerate(valid_data):
             data = [Variable(w2v.cuda()), Variable(ml.cuda())]
-            label = Variable(label.cuda())
+            label = Variable(label.long().cuda())
 
             with torch.no_grad():
                 prediction = model(data)
@@ -273,7 +265,6 @@ class Test_Model(object):
         loss = nn.BCELoss(weight=weight)
         # result_metrics = {"bce": loss(pred, truth)}
         _, pred = torch.max(pred, 1)
-        _, truth = torch.max(truth, 1)
 
         test_acc += torch.sum(pred == truth).item()
         test_acc = test_acc / len(valid_data.dataset)
@@ -312,12 +303,12 @@ def predict(**kwargs):
     print()
     print("="*50)
     print("Start Predicting")
-    device = 'cpu'
-    if torch.cuda.is_available():
-        device = 'cuda:0'
-        if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
-            device = 'cuda:1'
-    model = model.to(device)
+    # device = 'cpu'
+    # if torch.cuda.is_available():
+    #     device = 'cuda:0'
+    #     if round(torch.cuda.memory_allocated(0) / 1024 ** 3, 1) > 0.3:
+    #         device = 'cuda:1'
+    model = model.to(kwargs["device"])
 
     model.eval()
     batch_output = []
@@ -326,7 +317,7 @@ def predict(**kwargs):
 
     for i, (w2v, ml,labels) in enumerate(data_test):
         data = [Variable(w2v.cuda()), Variable(ml.cuda())]
-        labels = Variable(labels.cuda())
+        labels = Variable(labels.long().cuda())
 
         with torch.no_grad():
             prediction = model(data)
@@ -338,7 +329,6 @@ def predict(**kwargs):
     truth = torch.cat(truth_list, 0)
 
     _, pred = torch.max(pred, 1)
-    _, truth = torch.max(truth, 1)
 
     test_acc += torch.sum(pred == truth).item()
     test_acc = test_acc / len(data_test.dataset)
@@ -355,26 +345,26 @@ def predict(**kwargs):
     torch.cuda.empty_cache()
     return pred.cpu(), truth.cpu()
 
-def best_eval_result(eval_results, **kwargs):
-    """Check if the current epoch yields better validation results.
-
-    :param eval_results: dict, format {metrics_name: value}
-    :return: bool, True means current results on dev set is the best.
-    """
-    _best_loss = 1e10
-
-    global GLOBAL_BEST_LOSS
-
-    eval_metrics = kwargs["eval_metrics"]
-    assert eval_metrics in eval_results, \
-        "Evaluation doesn't contain metrics '{}'." \
-            .format(eval_metrics)
-
-    loss = eval_results[eval_metrics]
-    if loss < _best_loss:
-        _best_loss = loss
-        if loss < GLOBAL_BEST_LOSS:
-            GLOBAL_BEST_LOSS = loss
-            return True
-    return False
-
+# def best_eval_result(eval_results, **kwargs):
+#     """Check if the current epoch yields better validation results.
+#
+#     :param eval_results: dict, format {metrics_name: value}
+#     :return: bool, True means current results on dev set is the best.
+#     """
+#     _best_loss = 1e10
+#
+#     global GLOBAL_BEST_LOSS
+#
+#     eval_metrics = kwargs["eval_metrics"]
+#     assert eval_metrics in eval_results, \
+#         "Evaluation doesn't contain metrics '{}'." \
+#             .format(eval_metrics)
+#
+#     loss = eval_results[eval_metrics]
+#     if loss < _best_loss:
+#         _best_loss = loss
+#         if loss < GLOBAL_BEST_LOSS:
+#             GLOBAL_BEST_LOSS = loss
+#             return True
+#     return False
+#

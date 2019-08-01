@@ -43,22 +43,22 @@ def load_model(model, model_path):
 
 
 def read_data(seed):
-    X = File("w2v_feature_1000pretrain_pad.hdf5", "r")["w2v"][:10000]
-    # X = np.load("w2v_feature_pad.npy")[3000:9000]
-    ml_features = pd.read_csv("final_features_ml.csv").values[:10000]
+    X = File("w2v_feature_1000pretrain_pad.hdf5", "r")["w2v"][:]
+    # X = np.load("w2v_feature_pad.npy")
+    ml_features = pd.read_csv("final_features_ml.csv").values[:]
     # ml_features = np.pad(ml_features, ((0, 0), (0, X.shape[1]-ml_features.shape[1])), 'constant', constant_values=0)
     # ml_features = ml_features[..., np.newaxis]
     # ml_features = np.broadcast_to(ml_features, (ml_features.shape[0], ml_features.shape[1], 300))
     # ml_features = np.broadcast_to(ml_features, X.shape)
 
-    labels = pd.read_csv("data.csv")["label"][:10000]
+    labels = pd.read_csv("data.csv")["label"][:]
     y = labels.values
     real_fake_count = labels.value_counts()
     class_weight = [labels.shape[0]/real_fake_count['fake'], labels.shape[0]/real_fake_count['real']]
     # class_weight = compute_class_weight(class_weight='balanced', classes=np.unique(y), y=y)
 
-    # y = LabelEncoder().fit_transform(y).reshape(-1,1)
-    y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
+    y = LabelEncoder().fit_transform(y)
+    # y = OneHotEncoder(sparse=False).fit_transform(y.reshape(-1, 1))
     # random sample n rows
     # X, y = zip(*random.sample(list(zip(X,y)), 5000))
     # split them into 80% training, 10% testing, 10% validation
@@ -73,7 +73,7 @@ def read_data(seed):
 
 def data_preparation(seed):
     model_path = 'model.pkl'
-    batch_size = 256
+    batch_size = 128
     X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight = read_data(seed)
 
     train_set = FakenewsDataset(X_train, y_train)
