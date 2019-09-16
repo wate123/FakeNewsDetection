@@ -18,10 +18,10 @@ from classfiers import xgboost, logistic_reg, random_forest, ada_boost, dt, knn,
 import time, random
 import datetime
 
-controls = {"GridSearch": False, "DefaultParams": True}
+controls = {"GridSearch": True, "DefaultParams": False}
 # # call NewsContent class to preprocess/tokenize the news content
-dataset = ['politifact']
-# dataset = ['gossipcop']
+# dataset = ['politifact']
+dataset = ['gossipcop']
 # dataset = ['politifact', 'gossipcop']
 data = NewsContent('../fakenewsnet_dataset', dataset, ['fake', 'real'])
 # data = NewsContent('../fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
