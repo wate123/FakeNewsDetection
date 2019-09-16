@@ -1,13 +1,13 @@
 from nltk import sent_tokenize
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-import pandas as pd
+import pandas as pd, os
 
 
 class SentimentFeatureGenerator(object):
     """
     Generate Sentiment feature and write into csv file.
     """
-    def __init__(self):
+    def __init__(self, out_file_path):
         """
         Initializer that constructs Sentiment analyzer
         """
@@ -15,6 +15,8 @@ class SentimentFeatureGenerator(object):
         self.pair_news = []
         # self.sentiment_feature_df = pd.DataFrame()
         self.sid = SentimentIntensityAnalyzer()
+        self.out_file_path = out_file_path
+        self.datasetName = out_file_path.split("_")[0]
 
     def compute_sentiment(self, sentences):
         """
@@ -32,7 +34,7 @@ class SentimentFeatureGenerator(object):
         :return:
         """
         print("Generate Title Sentiment Features")
-        self.pair_news = pd.read_csv("data.csv")
+        self.pair_news = pd.read_csv(self.out_file_path)
 
         title_sentiment_feature_df = pd.DataFrame()
         body_sentiment_feature_df = pd.DataFrame()
@@ -48,9 +50,12 @@ class SentimentFeatureGenerator(object):
             columns={'compound': 'title_compound', 'neg': 'title_neg', 'neu': 'title_neu', 'pos': 'title_pos'},
             inplace=True)
         title_sentiment_feature_df["label"] = self.pair_news["label"].tolist()
-
+        try:
+            os.makedirs("./Features/"+self.datasetName)
+        except OSError:
+            pass
         # store results into csv
-        title_sentiment_feature_df.drop("title_sent", axis=1).to_csv("title_sentiment_feature.csv", index=False)
+        title_sentiment_feature_df.drop("title_sent", axis=1).to_csv("./Features/"+self.datasetName+"/title_sentiment_feature.csv", index=False)
         print("Article title Done!")
         print("Save into title_sentiment_feature.csv")
         print()
@@ -70,8 +75,9 @@ class SentimentFeatureGenerator(object):
             inplace=True)
         body_sentiment_feature_df["label"] = self.pair_news["label"].tolist()
 
+
         # store results into csv
-        body_sentiment_feature_df.drop("body_sent", axis=1).to_csv("body_sentiment_feature.csv", index=False)
+        body_sentiment_feature_df.drop("body_sent", axis=1).to_csv("./Features/"+self.datasetName+"/body_sentiment_feature.csv", index=False)
         print("Article body Done!")
         print("Save into body_sentiment_feature.csv")
 
@@ -80,7 +86,7 @@ class SentimentFeatureGenerator(object):
         Function that reads directly from files and merges the polarity results of title and body
         :return: merged sentiment results
         """
-        title_sen_feat = pd.read_csv('title_sentiment_feature.csv', index_col=False).drop("label", axis=1)
-        body_sen_feat = pd.read_csv('body_sentiment_feature.csv', index_col=False).drop("label", axis=1)
+        title_sen_feat = pd.read_csv("./Features/"+self.datasetName+'/title_sentiment_feature.csv', index_col=False).drop("label", axis=1)
+        body_sen_feat = pd.read_csv("./Features/"+self.datasetName+'/body_sentiment_feature.csv', index_col=False).drop("label", axis=1)
 
         return pd.merge(title_sen_feat, body_sen_feat, left_index=True, right_index=True)

@@ -133,7 +133,7 @@ class Train_Model(object):
             "use_cuda": True,
             "print_every_step": 20,
             "model_path": kwargs['model_path'],
-            "eval_metrics": "bce",
+            "eval_metrics": "cross_entropy",
             "embed_dim": 300,
             "num_layers": 2,
             "hidden_dim": 256,
@@ -216,7 +216,7 @@ class Train_Model(object):
                 global GLOBAL_BEST_Accuracy
                 if test_acc > GLOBAL_BEST_Accuracy:
                     GLOBAL_BEST_Accuracy = test_acc
-                    save_model(model, "./model.pkl", grid)
+                    save_model(model, train_args["model_path"], grid)
                     print("Current Grid Parameters", grid)
                     print("Saved better model selected by validation.")
                 vali_acc.append(test_acc)
@@ -226,9 +226,13 @@ class Train_Model(object):
                 #     print("Saved better model selected by validation.")
         plt.plot(vali_acc)
         plt.title("lr = "+str(kwargs["lr"]))
-        if os.path.exists('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png'):
-            os.remove('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
-        plt.savefig('./learning_rate/learning_curve_'+str(kwargs["lr"])+'.png')
+        if os.path.exists('./learning_rate/'+kwargs["dataset_name"]+'/learning_curve_'+str(kwargs["lr"])+'.png'):
+            os.remove('./learning_rate/'+kwargs["dataset_name"]+'/learning_curve_'+str(kwargs["lr"])+'.png')
+        try:
+            os.makedirs('./learning_rate/'+kwargs["dataset_name"])
+        except OSError:
+            pass
+        plt.savefig('./learning_rate/'+kwargs["dataset_name"]+'/learning_curve_'+str(kwargs["lr"])+'.png')
         plt.clf()
         torch.cuda.empty_cache()
 
@@ -280,7 +284,11 @@ class Test_Model(object):
 
 def predict(**kwargs):
     # define model
-    with open('hyper.pkl', 'rb') as f:
+    path = kwargs['model_path']
+    path = path.split("/")
+    path.pop()
+
+    with open("/".join(path)+'/hyper.pkl', 'rb') as f:
         final_grid = pickle.load(f)
     print(final_grid)
     args = {

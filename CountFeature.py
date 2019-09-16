@@ -2,6 +2,7 @@ from utils import get_ngram, division
 from nltk import sent_tokenize
 import pandas as pd
 from utils import preprocess
+import os
 
 def get_article_part_count(part, unique=False):
     """
@@ -19,7 +20,7 @@ class CountFeatureGenerator(object):
     """
     Generate Count feature and write into csv file.
     """
-    def __init__(self, name='countFeatureGenerator'  ):
+    def __init__(self, out_file_path, name='countFeatureGenerator'  ):
         """
         Initializer that constructs components of count feature
         """
@@ -29,6 +30,8 @@ class CountFeatureGenerator(object):
         self.parts = ["title", "body"]
         self.ngrams = ["uni", "bi", "tri"]
         self.count_features_df = pd.DataFrame()
+        self.out_file_path = out_file_path
+        self.datasetName = out_file_path.split("_")[0]
         # self.data = data
         # self.unpack_pair_generator()
 
@@ -38,7 +41,7 @@ class CountFeatureGenerator(object):
         """
         print("Generating Count Features")
         # a list of title and body key value pairs
-        self.pair_news = pd.read_csv("data.csv")
+        self.pair_news = pd.read_csv(self.out_file_path)
 
         # title_uni_list, body_uni_list = zip(*self.data)
         # self.pair_news["title"] = list(title_uni_list)
@@ -84,15 +87,19 @@ class CountFeatureGenerator(object):
 
         self.count_features_df["label"] = self.pair_news["label"]
 
+        try:
+            os.makedirs("./Features/"+self.datasetName)
+        except OSError:
+            pass
         # remove index to ensure model does not use during training or testing
-        self.count_features_df.to_csv("count_feature.csv", index=False)
+        self.count_features_df.to_csv("./Features/"+self.datasetName+"/count_feature.csv", index=False)
         print("Done! save into count_feature.csv")
 
     def read(self):
         """
         read directly from feature file and split train test set and make prediction using 20% test set
         """
-        return pd.read_csv('count_feature.csv', index_col=False).drop("label", axis=1)
+        return pd.read_csv("./Features/"+self.datasetName+'/count_feature.csv', index_col=False).drop("label", axis=1)
 
 # if __name__ == '__main__':
 #     cf = CountFeatureGenerator()

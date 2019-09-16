@@ -17,7 +17,7 @@ class Word2VecFeatureGenerator(object):
     Class that builds a Word2Vec model (either pre-trained or not) from the news content
     """
     
-    def __init__(self, features, pretrain=True):
+    def __init__(self, features, dataset, pretrain=True):
         """
         Initializer function that takes a corpus and specification of whether to use a pretrained model or not
         """
@@ -25,6 +25,7 @@ class Word2VecFeatureGenerator(object):
         #     self.model = Word2Vec.load("w2c_model")
         #     print("model loaded")
         # uses Google News Word2Vec model
+        self.dataset = dataset
         self.pretrain = pretrain
         if pretrain:
             self.model = KeyedVectors.load_word2vec_format("./GoogleNews-vectors-negative300.bin", binary=True)
@@ -110,13 +111,13 @@ class Word2VecFeatureGenerator(object):
         print("Done")
         # np.save('w2v_feature_pad.npy', np.array(w2vs))
         if self.pretrain:
-            with h5py.File("w2v_feature_" + str(max_body_length) + "pretrain_pad.hdf5", "w") as f:
+            with h5py.File("./Features/"+"-".join(self.dataset)+"/w2v_feature_" + str(max_body_length) + "-".join(self.dataset) + "_pretrain_pad.hdf5", "w") as f:
                 f.create_dataset("w2v", data=w2vs)
-            print("Save into w2v_feature_1000_pad.hdf5")
+            print("Save into w2v_feature_1000"+ "-".join(self.dataset) +"_pretrain_pad.hdf5")
         else:
-            with h5py.File("w2v_feature_" + str(max_body_length) + "_pad.hdf5", "w") as f:
+            with h5py.File("./Features/"+"-".join(self.dataset)+"/w2v_feature_" + str(max_body_length) + "-".join(self.dataset) + "_pad.hdf5", "w") as f:
                 f.create_dataset("w2v", data=w2vs)
-            print("Save into w2v_feature_1000_pad.hdf5")
+            print("Save into w2v_feature_1000"+ "-".join(self.dataset) +"_pad.hdf5")
         # return np.array(w2vs)
 
     def process_and_save(self):
@@ -127,7 +128,7 @@ class Word2VecFeatureGenerator(object):
         print("Generating Word2Vec Features")
         w2v_feature_df = pd.DataFrame(self.get_title_body_cos_sim())
         w2v_feature_df["label"] = pd.read_csv("data.csv")["label"]
-        w2v_feature_df.to_csv("w2v_feature.csv", index=False)
+        w2v_feature_df.to_csv("./Features/"+"-".join(self.dataset)+"/w2v_feature.csv", index=False)
         print("Done! save into w2v_features.csv")
 
     def get_weights(self):
@@ -138,9 +139,10 @@ class Word2VecFeatureGenerator(object):
         Function that reads directly from file
         :return: word2vec results without index to ensure model doesn't use index when training or testing
         """
-        return pd.read_csv('w2v_feature.csv', index_col=False).drop("label", axis=1)
+        return pd.read_csv("./Features/"+"-".join(self.dataset)+"/w2v_feature.csv", index_col=False).drop("label", axis=1)
 
 
 if __name__ == '__main__':
-    data = NewsContent('../fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
-    Word2VecFeatureGenerator(data.get_features("pair")).get_nn_vecs()
+    dataset = ['politifact']
+    data = NewsContent('../fakenewsnet_dataset', dataset, ['fake', 'real'])
+    Word2VecFeatureGenerator(data.get_features("pair"), dataset).get_nn_vecs()

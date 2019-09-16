@@ -3,9 +3,11 @@ import torch
 from h5py import File
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import normalize
+
 from sklearn.utils.class_weight import compute_class_weight
 import pandas as pd, numpy as np
-import pickle
+import pickle, os
 from sklearn.utils import shuffle
 import random
 class FakenewsDataset(Dataset):
@@ -24,8 +26,18 @@ class FakenewsDataset(Dataset):
 
 def save_model(model, model_path, grid):
     """Save model."""
+
+    path = model_path.split("/")
+    path.pop()
+    path = "/".join(path)
+    try:
+        os.makedirs(path)
+    except OSError:
+        pass
     torch.save(model.state_dict(), model_path)
-    with open("hyper.pkl",'wb') as f:
+
+
+    with open(path + "/hyper.pkl",'wb') as f:
         pickle.dump(grid,f)
     print("checkpoint saved")
     return
@@ -42,16 +54,16 @@ def load_model(model, model_path):
     return model
 
 
-def read_data(seed):
-    X = File("w2v_feature_1000pretrain_pad.hdf5", "r")["w2v"][:]
+def read_data(dataset, seed):
+    X = File("./Features/"+"-".join(dataset)+"/w2v_feature_1000"+ "-".join(dataset) +"_pretrain_pad.hdf5", "r")["w2v"][:]
     # X = np.load("w2v_feature_pad.npy")
-    ml_features = pd.read_csv("final_features_ml.csv").values[:]
+    ml_features = normalize(pd.read_csv("./Features/"+"-".join(dataset)+"/final_features_ml.csv").values[:])
     # ml_features = np.pad(ml_features, ((0, 0), (0, X.shape[1]-ml_features.shape[1])), 'constant', constant_values=0)
     # ml_features = ml_features[..., np.newaxis]
     # ml_features = np.broadcast_to(ml_features, (ml_features.shape[0], ml_features.shape[1], 300))
     # ml_features = np.broadcast_to(ml_features, X.shape)
 
-    labels = pd.read_csv("data.csv")["label"][:]
+    labels = pd.read_csv("-".join(dataset) + "_data.csv")["label"][:]
     y = labels.values
     real_fake_count = labels.value_counts()
     class_weight = [labels.shape[0]/real_fake_count['fake'], labels.shape[0]/real_fake_count['real']]
@@ -71,10 +83,10 @@ def read_data(seed):
     return X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight
 
 
-def data_preparation(seed):
-    model_path = 'model.pkl'
+def data_preparation(dataset, seed):
+    model_path = './Model/'+"-".join(dataset)+'/model.pkl'
     batch_size = 128
-    X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight = read_data(seed)
+    X_train, X_valid, X_test, y_train, y_valid, y_test, class_weight = read_data(dataset, seed)
 
     train_set = FakenewsDataset(X_train, y_train)
     print('Training size =', len(train_set.y))
@@ -89,5 +101,6 @@ def data_preparation(seed):
     print('valid_size =', len(valid_set.y))
     valid_loader = DataLoader(valid_set, batch_size=batch_size, shuffle=False, num_workers=16)
     return {"train_data": train_loader, "test_data": test_loader, "validation_data": valid_loader,
-            "class_weight": class_weight, "model_path": model_path, "seed":seed, "batch_size": batch_size}
+            "class_weight": class_weight, "model_path": model_path, "seed":seed, "batch_size": batch_size,
+            "dataset_name" : "-".join(dataset)}
 
