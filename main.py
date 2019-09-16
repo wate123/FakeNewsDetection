@@ -18,7 +18,7 @@ from classfiers import xgboost, logistic_reg, random_forest, ada_boost, dt, knn,
 import time, random
 import datetime
 
-controls = {"GridSearch": False, "DefaultParams": False}
+controls = {"GridSearch": False, "DefaultParams": True}
 # # call NewsContent class to preprocess/tokenize the news content
 dataset = ['politifact']
 # dataset = ['gossipcop']
