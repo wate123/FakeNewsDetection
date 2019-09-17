@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ljun@buzz.cs.wpi.edu">
+    <serverData>
+      <paths name="kmlee02">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ljun/FakeNewsDetection" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="/home/ljun/FakeNewsDetection/w2v_feature_pad.hdf5" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="kmlee03">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ljun/FakeNewsDetection" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ljun@buzz.cs.wpi.edu">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ljun/FakeNewsDetection" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ljun@kmlee06.cs.wpi.edu:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ljun/FakeNewsDetection" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

@@ -1,0 +1,902 @@
+nohup: ignoring input
+Preparing Dataset
+Google News pretrained model loaded
+Start prepare word2vec vectors
+Done
+Save into w2v_feature_1000politifact_pretrain_pad.hdf5
+Training size = 715
+Testing size = 90
+valid_size = 89
+Data preparation took 0.0 hour 2.0 min 15 sec
+{'out_size1': [32, 64, 128, 256, 512], 'out_size2': [16, 32, 64, 128, 256], 'lstm_drop': [0.05], 'drop1': [0.05], 'drop2': [0.05], 'drop3': [0.05], 'lr': [0.00012]}
+Start training
+/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/smart_open/smart_open_lib.py:398: UserWarning: This function is deprecated, use smart_open.open instead. See the migration notes for details: https://github.com/RaRe-Technologies/smart_open/blob/master/README.rst#migrating-to-the-new-open-function
+  'See the migration notes for details: %s' % _MIGRATION_NOTES_URL
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+checkpoint saved
+Current Grid Parameters {'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.578424
+Validate Accuracy: 0.539326
+Train Accuracy: 0.578431
+Validate Accuracy: 0.561798
+checkpoint saved
+Current Grid Parameters {'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.470739
+Validate Accuracy: 0.483146
+Train Accuracy: 0.463595
+Validate Accuracy: 0.460674
+Train Accuracy: 0.471977
+Validate Accuracy: 0.52809
+Train Accuracy: 0.512548
+Validate Accuracy: 0.573034
+checkpoint saved
+Current Grid Parameters {'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.72799
+Validate Accuracy: 0.685393
+checkpoint saved
+Current Grid Parameters {'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.778641
+Validate Accuracy: 0.685393
+Train Accuracy: 0.768921
+Validate Accuracy: 0.707865
+checkpoint saved
+Current Grid Parameters {'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.802474
+Validate Accuracy: 0.730337
+checkpoint saved
+Current Grid Parameters {'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.806717
+Validate Accuracy: 0.741573
+checkpoint saved
+Current Grid Parameters {'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.810918
+Validate Accuracy: 0.730337
+Train Accuracy: 0.796938
+Validate Accuracy: 0.730337
+{'out1': 32, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.85      0.71      0.77        31
+        real       0.86      0.93      0.89        59
+
+    accuracy                           0.86        90
+   macro avg       0.85      0.82      0.83        90
+weighted avg       0.85      0.86      0.85        90
+
+predicting took 0.0 hour 2.0 min 20 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.579822
+Validate Accuracy: 0.539326
+Train Accuracy: 0.662349
+Validate Accuracy: 0.685393
+Train Accuracy: 0.540787
+Validate Accuracy: 0.58427
+Train Accuracy: 0.50705
+Validate Accuracy: 0.483146
+Train Accuracy: 0.458052
+Validate Accuracy: 0.483146
+Train Accuracy: 0.463578
+Validate Accuracy: 0.483146
+Train Accuracy: 0.533515
+Validate Accuracy: 0.58427
+Train Accuracy: 0.711236
+Validate Accuracy: 0.685393
+Train Accuracy: 0.781414
+Validate Accuracy: 0.741573
+Train Accuracy: 0.809484
+Validate Accuracy: 0.741573
+Train Accuracy: 0.822111
+Validate Accuracy: 0.730337
+Train Accuracy: 0.833318
+Validate Accuracy: 0.730337
+Train Accuracy: 0.827739
+Validate Accuracy: 0.764045
+checkpoint saved
+Current Grid Parameters {'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.78857
+Validate Accuracy: 0.719101
+Train Accuracy: 0.74376
+Validate Accuracy: 0.674157
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 0.0 hour 25.0 min 12 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.635766
+Validate Accuracy: 0.685393
+Train Accuracy: 0.675015
+Validate Accuracy: 0.58427
+Train Accuracy: 0.579965
+Validate Accuracy: 0.573034
+Train Accuracy: 0.549063
+Validate Accuracy: 0.58427
+Train Accuracy: 0.693076
+Validate Accuracy: 0.730337
+Train Accuracy: 0.792578
+Validate Accuracy: 0.696629
+Train Accuracy: 0.768941
+Validate Accuracy: 0.696629
+Train Accuracy: 0.789887
+Validate Accuracy: 0.730337
+Train Accuracy: 0.782923
+Validate Accuracy: 0.696629
+Train Accuracy: 0.777319
+Validate Accuracy: 0.696629
+Train Accuracy: 0.810877
+Validate Accuracy: 0.730337
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 0.0 hour 32.0 min 5 sec
+Start training
+Train Accuracy: 0.427972
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.582418
+Validate Accuracy: 0.651685
+Train Accuracy: 0.771444
+Validate Accuracy: 0.741573
+Train Accuracy: 0.784296
+Validate Accuracy: 0.741573
+Train Accuracy: 0.819279
+Validate Accuracy: 0.741573
+Train Accuracy: 0.822125
+Validate Accuracy: 0.696629
+Train Accuracy: 0.767583
+Validate Accuracy: 0.696629
+Train Accuracy: 0.703171
+Validate Accuracy: 0.685393
+Train Accuracy: 0.781403
+Validate Accuracy: 0.730337
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 0.0 hour 38.0 min 40 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.614787
+Validate Accuracy: 0.640449
+Train Accuracy: 0.624636
+Validate Accuracy: 0.573034
+Train Accuracy: 0.474999
+Validate Accuracy: 0.460674
+Train Accuracy: 0.435629
+Validate Accuracy: 0.460674
+Train Accuracy: 0.434176
+Validate Accuracy: 0.47191
+Train Accuracy: 0.484523
+Validate Accuracy: 0.58427
+Train Accuracy: 0.602076
+Validate Accuracy: 0.674157
+Train Accuracy: 0.775667
+Validate Accuracy: 0.730337
+Train Accuracy: 0.796889
+Validate Accuracy: 0.741573
+Train Accuracy: 0.78573
+Validate Accuracy: 0.696629
+Train Accuracy: 0.806693
+Validate Accuracy: 0.719101
+Train Accuracy: 0.816513
+Validate Accuracy: 0.719101
+Train Accuracy: 0.819324
+Validate Accuracy: 0.730337
+Train Accuracy: 0.823524
+Validate Accuracy: 0.730337
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 0.0 hour 48.0 min 7 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.574228
+Validate Accuracy: 0.539326
+Train Accuracy: 0.570034
+Validate Accuracy: 0.651685
+Train Accuracy: 0.540657
+Validate Accuracy: 0.550562
+Train Accuracy: 0.518239
+Validate Accuracy: 0.460674
+Train Accuracy: 0.448277
+Validate Accuracy: 0.460674
+Train Accuracy: 0.45797
+Validate Accuracy: 0.460674
+Train Accuracy: 0.455186
+Validate Accuracy: 0.483146
+Train Accuracy: 0.501336
+Validate Accuracy: 0.573034
+Train Accuracy: 0.567135
+Validate Accuracy: 0.58427
+Train Accuracy: 0.600793
+Validate Accuracy: 0.662921
+Train Accuracy: 0.789651
+Validate Accuracy: 0.752809
+Train Accuracy: 0.813692
+Validate Accuracy: 0.752809
+Train Accuracy: 0.81932
+Validate Accuracy: 0.707865
+Train Accuracy: 0.754992
+Validate Accuracy: 0.685393
+Train Accuracy: 0.670986
+Validate Accuracy: 0.640449
+Train Accuracy: 0.596743
+Validate Accuracy: 0.685393
+Train Accuracy: 0.750485
+Validate Accuracy: 0.696629
+Train Accuracy: 0.753497
+Validate Accuracy: 0.707865
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 0.0 hour 59.0 min 25 sec
+Start training
+Train Accuracy: 0.562238
+Validate Accuracy: 0.539326
+Train Accuracy: 0.588199
+Validate Accuracy: 0.539326
+Train Accuracy: 0.55327
+Validate Accuracy: 0.561798
+Train Accuracy: 0.523851
+Validate Accuracy: 0.460674
+Train Accuracy: 0.451082
+Validate Accuracy: 0.460674
+Train Accuracy: 0.452379
+Validate Accuracy: 0.460674
+Train Accuracy: 0.46357
+Validate Accuracy: 0.550562
+Train Accuracy: 0.540508
+Validate Accuracy: 0.58427
+Train Accuracy: 0.642714
+Validate Accuracy: 0.685393
+Train Accuracy: 0.763137
+Validate Accuracy: 0.719101
+Train Accuracy: 0.791277
+Validate Accuracy: 0.730337
+Train Accuracy: 0.785722
+Validate Accuracy: 0.719101
+Train Accuracy: 0.813686
+Validate Accuracy: 0.752809
+Train Accuracy: 0.834704
+Validate Accuracy: 0.707865
+Train Accuracy: 0.812356
+Validate Accuracy: 0.730337
+Train Accuracy: 0.82771
+Validate Accuracy: 0.741573
+Train Accuracy: 0.830528
+Validate Accuracy: 0.741573
+Train Accuracy: 0.850113
+Validate Accuracy: 0.764045
+Train Accuracy: 0.855734
+Validate Accuracy: 0.741573
+Train Accuracy: 0.852945
+Validate Accuracy: 0.752809
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 1.0 hour 11.0 min 47 sec
+Start training
+Train Accuracy: 0.427972
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.431369
+Validate Accuracy: 0.460674
+Train Accuracy: 0.527876
+Validate Accuracy: 0.606742
+Train Accuracy: 0.604934
+Validate Accuracy: 0.58427
+Train Accuracy: 0.744902
+Validate Accuracy: 0.685393
+Train Accuracy: 0.778664
+Validate Accuracy: 0.719101
+Train Accuracy: 0.775914
+Validate Accuracy: 0.651685
+Train Accuracy: 0.729757
+Validate Accuracy: 0.629213
+Train Accuracy: 0.608014
+Validate Accuracy: 0.741573
+Train Accuracy: 0.732319
+Validate Accuracy: 0.685393
+Train Accuracy: 0.791234
+Validate Accuracy: 0.696629
+Train Accuracy: 0.82768
+Validate Accuracy: 0.696629
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 1.0 hour 22.0 min 18 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.623179
+Validate Accuracy: 0.629213
+Train Accuracy: 0.537935
+Validate Accuracy: 0.550562
+Train Accuracy: 0.521032
+Validate Accuracy: 0.573034
+Train Accuracy: 0.518211
+Validate Accuracy: 0.539326
+Train Accuracy: 0.560165
+Validate Accuracy: 0.595506
+Train Accuracy: 0.575609
+Validate Accuracy: 0.58427
+Train Accuracy: 0.598008
+Validate Accuracy: 0.640449
+Train Accuracy: 0.750487
+Validate Accuracy: 0.707865
+Train Accuracy: 0.796854
+Validate Accuracy: 0.719101
+Train Accuracy: 0.806709
+Validate Accuracy: 0.730337
+Train Accuracy: 0.785744
+Validate Accuracy: 0.707865
+Train Accuracy: 0.594106
+Validate Accuracy: 0.539326
+Train Accuracy: 0.64139
+Validate Accuracy: 0.460674
+Train Accuracy: 0.577121
+Validate Accuracy: 0.752809
+Train Accuracy: 0.791017
+Validate Accuracy: 0.719101
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 1.0 hour 33.0 min 40 sec
+Start training
+Train Accuracy: 0.427972
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.432767
+Validate Accuracy: 0.460674
+Train Accuracy: 0.441165
+Validate Accuracy: 0.483146
+Train Accuracy: 0.46775
+Validate Accuracy: 0.58427
+Train Accuracy: 0.667787
+Validate Accuracy: 0.707865
+Train Accuracy: 0.758976
+Validate Accuracy: 0.651685
+Train Accuracy: 0.777285
+Validate Accuracy: 0.752809
+Train Accuracy: 0.805283
+Validate Accuracy: 0.741573
+Train Accuracy: 0.8277
+Validate Accuracy: 0.752809
+Train Accuracy: 0.82913
+Validate Accuracy: 0.741573
+Train Accuracy: 0.838922
+Validate Accuracy: 0.719101
+Train Accuracy: 0.840334
+Validate Accuracy: 0.730337
+Train Accuracy: 0.851525
+Validate Accuracy: 0.719101
+Train Accuracy: 0.848743
+Validate Accuracy: 0.685393
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 1.0 hour 46.0 min 59 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572829
+Validate Accuracy: 0.539326
+Train Accuracy: 0.571431
+Validate Accuracy: 0.595506
+Train Accuracy: 0.581219
+Validate Accuracy: 0.573034
+Train Accuracy: 0.491722
+Validate Accuracy: 0.561798
+Train Accuracy: 0.470618
+Validate Accuracy: 0.483146
+Train Accuracy: 0.484574
+Validate Accuracy: 0.52809
+Train Accuracy: 0.477601
+Validate Accuracy: 0.52809
+Train Accuracy: 0.51815
+Validate Accuracy: 0.573034
+Train Accuracy: 0.637088
+Validate Accuracy: 0.685393
+Train Accuracy: 0.798094
+Validate Accuracy: 0.730337
+Train Accuracy: 0.812305
+Validate Accuracy: 0.752809
+Train Accuracy: 0.829108
+Validate Accuracy: 0.752809
+Train Accuracy: 0.837523
+Validate Accuracy: 0.752809
+Train Accuracy: 0.844528
+Validate Accuracy: 0.752809
+Train Accuracy: 0.859922
+Validate Accuracy: 0.752809
+Train Accuracy: 0.868336
+Validate Accuracy: 0.764045
+Train Accuracy: 0.87534
+Validate Accuracy: 0.752809
+{'out1': 64, 'out2': 16, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.88      0.68      0.76        31
+        real       0.85      0.95      0.90        59
+
+    accuracy                           0.86        90
+   macro avg       0.86      0.81      0.83        90
+weighted avg       0.86      0.86      0.85        90
+
+predicting took 1.0 hour 52.0 min 53 sec
+Start training
+Train Accuracy: 0.426573
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428569
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428571
+Validate Accuracy: 0.460674
+Train Accuracy: 0.436963
+Validate Accuracy: 0.460674
+Train Accuracy: 0.50131
+Validate Accuracy: 0.47191
+Train Accuracy: 0.463638
+Validate Accuracy: 0.460674
+Train Accuracy: 0.42862
+Validate Accuracy: 0.460674
+Train Accuracy: 0.446753
+Validate Accuracy: 0.573034
+Train Accuracy: 0.624401
+Validate Accuracy: 0.595506
+Train Accuracy: 0.707167
+Validate Accuracy: 0.707865
+Train Accuracy: 0.796793
+Validate Accuracy: 0.730337
+Train Accuracy: 0.789926
+Validate Accuracy: 0.730337
+Train Accuracy: 0.805301
+Validate Accuracy: 0.741573
+Train Accuracy: 0.819308
+Validate Accuracy: 0.719101
+Train Accuracy: 0.816531
+Validate Accuracy: 0.741573
+Train Accuracy: 0.854289
+Validate Accuracy: 0.764045
+Train Accuracy: 0.858537
+Validate Accuracy: 0.764045
+Train Accuracy: 0.865536
+Validate Accuracy: 0.775281
+checkpoint saved
+Current Grid Parameters {'out1': 512, 'out2': 32, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.873938
+Validate Accuracy: 0.752809
+Train Accuracy: 0.869754
+Validate Accuracy: 0.752809
+{'out1': 512, 'out2': 32, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.85      0.71      0.77        31
+        real       0.86      0.93      0.89        59
+
+    accuracy                           0.86        90
+   macro avg       0.85      0.82      0.83        90
+weighted avg       0.85      0.86      0.85        90
+
+predicting took 1.0 hour 56.0 min 43 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.572828
+Validate Accuracy: 0.539326
+Train Accuracy: 0.596605
+Validate Accuracy: 0.617978
+Train Accuracy: 0.57566
+Validate Accuracy: 0.539326
+Train Accuracy: 0.479127
+Validate Accuracy: 0.47191
+Train Accuracy: 0.490181
+Validate Accuracy: 0.573034
+Train Accuracy: 0.518168
+Validate Accuracy: 0.573034
+Train Accuracy: 0.555969
+Validate Accuracy: 0.573034
+Train Accuracy: 0.663715
+Validate Accuracy: 0.606742
+Train Accuracy: 0.703026
+Validate Accuracy: 0.617978
+Train Accuracy: 0.712871
+Validate Accuracy: 0.674157
+Train Accuracy: 0.803794
+Validate Accuracy: 0.752809
+Train Accuracy: 0.822103
+Validate Accuracy: 0.752809
+Train Accuracy: 0.822129
+Validate Accuracy: 0.752809
+Train Accuracy: 0.843108
+Validate Accuracy: 0.741573
+Train Accuracy: 0.763417
+Validate Accuracy: 0.764045
+Train Accuracy: 0.840229
+Validate Accuracy: 0.786517
+checkpoint saved
+Current Grid Parameters {'out1': 512, 'out2': 64, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+Train Accuracy: 0.83614
+Validate Accuracy: 0.764045
+Train Accuracy: 0.864106
+Validate Accuracy: 0.786517
+Train Accuracy: 0.871139
+Validate Accuracy: 0.775281
+{'out1': 512, 'out2': 64, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.866667
+              precision    recall  f1-score   support
+
+        fake       0.79      0.84      0.81        31
+        real       0.91      0.88      0.90        59
+
+    accuracy                           0.87        90
+   macro avg       0.85      0.86      0.85        90
+weighted avg       0.87      0.87      0.87        90
+
+predicting took 2.0 hour 0.0 min 34 sec
+Start training
+Train Accuracy: 0.569231
+Validate Accuracy: 0.539326
+Train Accuracy: 0.543453
+Validate Accuracy: 0.460674
+Train Accuracy: 0.455306
+Validate Accuracy: 0.460674
+Train Accuracy: 0.42721
+Validate Accuracy: 0.460674
+Train Accuracy: 0.443954
+Validate Accuracy: 0.460674
+Train Accuracy: 0.434187
+Validate Accuracy: 0.460674
+Train Accuracy: 0.431376
+Validate Accuracy: 0.460674
+Train Accuracy: 0.501303
+Validate Accuracy: 0.573034
+Train Accuracy: 0.628673
+Validate Accuracy: 0.595506
+Train Accuracy: 0.673607
+Validate Accuracy: 0.629213
+Train Accuracy: 0.718425
+Validate Accuracy: 0.674157
+Train Accuracy: 0.788417
+Validate Accuracy: 0.741573
+Train Accuracy: 0.822082
+Validate Accuracy: 0.741573
+Train Accuracy: 0.831919
+Validate Accuracy: 0.741573
+Train Accuracy: 0.851513
+Validate Accuracy: 0.752809
+Train Accuracy: 0.845946
+Validate Accuracy: 0.764045
+Train Accuracy: 0.84454
+Validate Accuracy: 0.741573
+Train Accuracy: 0.86272
+Validate Accuracy: 0.775281
+Train Accuracy: 0.866941
+Validate Accuracy: 0.752809
+Train Accuracy: 0.879534
+Validate Accuracy: 0.797753
+checkpoint saved
+Current Grid Parameters {'out1': 512, 'out2': 128, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+Saved better model selected by validation.
+{'out1': 512, 'out2': 128, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.78      0.81      0.79        31
+        real       0.90      0.88      0.89        59
+
+    accuracy                           0.86        90
+   macro avg       0.84      0.84      0.84        90
+weighted avg       0.86      0.86      0.86        90
+
+predicting took 2.0 hour 4.0 min 24 sec
+Start training
+Train Accuracy: 0.572028
+Validate Accuracy: 0.539326
+Train Accuracy: 0.560241
+Validate Accuracy: 0.573034
+Train Accuracy: 0.472112
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428632
+Validate Accuracy: 0.460674
+Train Accuracy: 0.428572
+Validate Accuracy: 0.460674
+Train Accuracy: 0.436963
+Validate Accuracy: 0.47191
+Train Accuracy: 0.432779
+Validate Accuracy: 0.483146
+Train Accuracy: 0.490116
+Validate Accuracy: 0.606742
+Train Accuracy: 0.620266
+Validate Accuracy: 0.617978
+Train Accuracy: 0.705763
+Validate Accuracy: 0.662921
+Train Accuracy: 0.760428
+Validate Accuracy: 0.719101
+Train Accuracy: 0.812252
+Validate Accuracy: 0.764045
+Train Accuracy: 0.834702
+Validate Accuracy: 0.752809
+Train Accuracy: 0.841727
+Validate Accuracy: 0.764045
+Train Accuracy: 0.850128
+Validate Accuracy: 0.764045
+Train Accuracy: 0.85014
+Validate Accuracy: 0.752809
+Train Accuracy: 0.866923
+Validate Accuracy: 0.741573
+Train Accuracy: 0.871143
+Validate Accuracy: 0.764045
+Train Accuracy: 0.880939
+Validate Accuracy: 0.764045
+Train Accuracy: 0.892141
+Validate Accuracy: 0.775281
+{'out1': 512, 'out2': 128, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.78      0.81      0.79        31
+        real       0.90      0.88      0.89        59
+
+    accuracy                           0.86        90
+   macro avg       0.84      0.84      0.84        90
+weighted avg       0.86      0.86      0.86        90
+
+predicting took 2.0 hour 8.0 min 15 sec
+training took 2.0 hour 8.0 min 15 sec
+{'out1': 512, 'out2': 128, 'dropout1': 0.05, 'dropout2': 0.05, 'dropout3': 0.05, 'dropout': 0.05, 'lr': 0.00012}
+
+==================================================
+Start Predicting
+[Final tester] Accuracy: 0.855556
+              precision    recall  f1-score   support
+
+        fake       0.78      0.81      0.79        31
+        real       0.90      0.88      0.89        59
+
+    accuracy                           0.86        90
+   macro avg       0.84      0.84      0.84        90
+weighted avg       0.86      0.86      0.86        90
+
+predicting took 0.0 hour 0.0 min 3 sec

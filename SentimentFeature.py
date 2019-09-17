@@ -80,6 +80,8 @@ class SentimentFeatureGenerator(object):
         body_sentiment_feature_df.drop("body_sent", axis=1).to_csv("./Features/"+self.datasetName+"/body_sentiment_feature.csv", index=False)
         print("Article body Done!")
         print("Save into body_sentiment_feature.csv")
+        return {"Tile Sentiment Feature Path": "./Features/"+self.datasetName+"/title_sentiment_feature.csv",
+                "Body Sentiment Feature Path": "./Features/" + self.datasetName + "/body_sentiment_feature.csv"}
 
     def read(self):
         """

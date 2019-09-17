@@ -94,6 +94,7 @@ class CountFeatureGenerator(object):
         # remove index to ensure model does not use during training or testing
         self.count_features_df.to_csv("./Features/"+self.datasetName+"/count_feature.csv", index=False)
         print("Done! save into count_feature.csv")
+        return {"Count Feature Path": "./Features/"+self.datasetName+"/count_feature.csv"}
 
     def read(self):
         """

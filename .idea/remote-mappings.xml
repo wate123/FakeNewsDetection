@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@sftp://gtaylor2@kmlee06.cs.wpi.edu:22/home/gtaylor2/anaconda3/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/home/gtaylor2/FakeNewsDetection" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@sftp://ljun@kmlee06.cs.wpi.edu:22/home/ljun/anaconda3/envs/fakenews/bin/python" />
+      </list>
+    </list>
+  </component>
+</project>

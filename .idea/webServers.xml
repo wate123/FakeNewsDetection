@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="51bfc306-8a1e-4733-9eb9-62ac4394d23c" name="ljun@kmlee06.cs.wpi.edu:22" url="http:///">
+        <fileTransfer host="kmlee06.cs.wpi.edu" port="22" accessType="SFTP">
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="8e7a060e-3e9d-4b5a-a226-0fd5be4c6f57" name="kmlee03" url="http://kmlee03.cs.wpi.edu">
+        <fileTransfer host="kmlee03.cs.wpi.edu" port="22" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

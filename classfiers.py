@@ -41,7 +41,7 @@ def ada_boost(gcv, default_param, class_weight, seed, cv=1):
             clf = GCV(AdaBoostClassifier(), parameters, cv=ShuffleSplit(test_size=0.20, n_splits=1), n_jobs=40)
         else:
             clf = GCV(AdaBoostClassifier(), parameters, cv=cv, n_jobs=40)
-    return clf
+    return clf, "Ada Boost", parameters
 
 
 def knn(gcv, default_param, class_weight, seed, cv=1):
@@ -66,7 +66,7 @@ def knn(gcv, default_param, class_weight, seed, cv=1):
             clf = GCV(KNeighborsClassifier(), parameters, cv=ShuffleSplit(test_size=0.20, n_splits=1), n_jobs=40)
         else:
             clf = GCV(KNeighborsClassifier(), parameters, cv=cv, n_jobs=40)
-    return clf
+    return clf, "K nearest neighbor", parameters
 
 
 def dt(gcv, default_param, class_weight, seed, cv=1):
@@ -95,7 +95,7 @@ def dt(gcv, default_param, class_weight, seed, cv=1):
             clf = GCV(DTC(), parameters, cv=ShuffleSplit(test_size=0.20, n_splits=1), n_jobs=40)
         else:
             clf = GCV(DTC(), parameters, cv=cv, n_jobs=40)
-    return clf
+    return clf, "Decision Tree", parameters
 
 
 def svm(gcv, default_param, class_weight, seed, cv=1):
@@ -125,7 +125,7 @@ def svm(gcv, default_param, class_weight, seed, cv=1):
             clf = GCV(SVC(), parameters, cv=ShuffleSplit(test_size=0.20, n_splits=1), n_jobs=40)
         else:
             clf = GCV(SVC(), parameters, cv=cv, n_jobs=40)
-    return clf
+    return clf, "SVM", parameters
 
 
 def random_forest(gcv, default_param, class_weight, seed, cv=1):
@@ -165,7 +165,7 @@ def random_forest(gcv, default_param, class_weight, seed, cv=1):
             clf = GCV(RandomForestClassifier(), parameters, cv=ShuffleSplit(test_size=0.20, n_splits=1), n_jobs=40)
         else:
             clf = GCV(RandomForestClassifier(), parameters, cv=cv, n_jobs=40)
-    return clf
+    return clf, "Random Forest", parameters
 
 
 def xgboost(gcv, default_param, class_weight, seed, cv=1):
@@ -195,7 +195,7 @@ def xgboost(gcv, default_param, class_weight, seed, cv=1):
             clf = GCV(xgb.XGBClassifier(), parameters, cv=ShuffleSplit(test_size=0.20, n_splits=1), n_jobs=40)
         else:
             clf = GCV(xgb.XGBClassifier(), parameters, cv=cv, n_jobs=40)
-    return clf
+    return clf, "XGboost", parameters
 
 
 def logistic_reg(gcv, default_param, class_weight, seed, cv=1):
@@ -221,4 +221,4 @@ def logistic_reg(gcv, default_param, class_weight, seed, cv=1):
             clf = GCV(LogisticRegression(), parameters, cv=ShuffleSplit(test_size=0.20, n_splits=1), n_jobs=40)
         else:
             clf = GCV(LogisticRegression(), parameters, cv=cv, n_jobs=40)
-    return clf
+    return clf, "Logistic Regression", parameters

@@ -199,7 +199,7 @@ class NewsContent(object):
                         yield words
 
     def save_in_sentence_form(self, dataset):
-        """Generate a json file for each news that contains their tile, body, and label"""
+        """Generate a csv file for each news that contains their tile, body, and label"""
         big_dict = []
 
         # iterating through directories
@@ -475,6 +475,8 @@ def simplifiedCV(target, parameters, X_train, X_valid, y_train, y_valid):
     new_paras = [dict(zip(parameters.keys(), v)) for v in itertools.product(*parameters.values())]
     result = myParallel(target, new_paras, X_train, X_valid, y_train, y_valid, new_paras)
     return result
+
+# def save_results(results, out_path):
 
 # def unpack_pair_generator(data):
 #     pairs = []

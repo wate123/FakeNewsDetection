@@ -66,6 +66,7 @@ class SvdFeature(object):
         # print(svd_matrix.shape)
 
         print("Done! Save into svd_feature.csv")
+        return {"SVD Feature Path": "./Features/"+self.datasetName+"/svd_feature.csv"}
 
     def read(self):
         """

@@ -1,0 +1,39 @@
+nohup: ignoring input
+Preparing Dataset
+Google News pretrained model loaded
+Start prepare word2vec vectors
+Done
+Save into w2v_feature_1000gossipcop_pretrain_pad.hdf5
+Training size = 16845
+Testing size = 2106
+valid_size = 2106
+Data preparation took 1.0 hour 55.0 min 16 sec
+{'out_size1': [32, 64, 128, 256, 512], 'out_size2': [16, 32, 64, 128, 256], 'lstm_drop': [0.05], 'drop1': [0.05], 'drop2': [0.05], 'drop3': [0.05], 'lr': [1e-05, 3e-05, 0.0001, 0.0003, 0.001, 0.003]}
+Start training
+/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/smart_open/smart_open_lib.py:398: UserWarning: This function is deprecated, use smart_open.open instead. See the migration notes for details: https://github.com/RaRe-Technologies/smart_open/blob/master/README.rst#migrating-to-the-new-open-function
+  'See the migration notes for details: %s' % _MIGRATION_NOTES_URL
+Traceback (most recent call last):
+  File "/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/tensorboardX/record_writer.py", line 40, in directory_check
+    factory = REGISTERED_FACTORIES[prefix]
+KeyError: 'runs/Sep12_01-15-29_buzzTraining Loss'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "nn_main.py", line 82, in <module>
+    for grid in [dict(zip(separate_dataset_grid_search.keys(), v)) for v in product(*separate_dataset_grid_search.values())]:
+  File "/home/ljun/FakeNewsDetection/nn_model.py", line 192, in train_model
+    with SummaryWriter(comment='Training Loss') as w:
+  File "/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/tensorboardX/writer.py", line 257, in __init__
+    self._get_file_writer()
+  File "/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/tensorboardX/writer.py", line 321, in _get_file_writer
+    **self.kwargs)
+  File "/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/tensorboardX/writer.py", line 93, in __init__
+    logdir, max_queue, flush_secs, filename_suffix)
+  File "/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/tensorboardX/event_file_writer.py", line 104, in __init__
+    directory_check(self._logdir)
+  File "/home/ljun/anaconda3/envs/fakenews/lib/python3.7/site-packages/tensorboardX/record_writer.py", line 44, in directory_check
+    os.makedirs(path)
+  File "/home/ljun/anaconda3/envs/fakenews/lib/python3.7/os.py", line 221, in makedirs
+    mkdir(name, mode)
+FileExistsError: [Errno 17] File exists: 'runs/Sep12_01-15-29_buzzTraining Loss'
