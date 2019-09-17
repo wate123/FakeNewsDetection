@@ -15,7 +15,7 @@ import datetime, os
 logs = {}
 
 
-controls = {"GridSearch": True, "DefaultParams": False}
+controls = {"GridSearch": False, "DefaultParams": False}
 # # call NewsContent class to preprocess/tokenize the news content
 dataset = ['politifact']
 # dataset = ['gossipcop']
@@ -24,7 +24,7 @@ data = NewsContent('../fakenewsnet_dataset', dataset, ['fake', 'real'])
 # data = NewsContent('../fakenewsnet_dataset', ['politifact', 'gossipcop'], ['fake', 'real'])
 # save_as_line_sentence(data.get_features(), "news_corpus.txt")
 out_file_path = data.save_in_sentence_form(dataset)
-score_path = "./Results/"+"_".join(dataset)+str(datetime.datetime.now().strftime("%H:%M:%S-%m-%d-%Y"))+"/GCV"
+score_path = "./Results/"+"_".join(dataset)+str(datetime.datetime.now().strftime("%H:%M:%S-%m-%d-%Y"))+"/Eval"
 try:
     os.makedirs(score_path)
 except OSError:

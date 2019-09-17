@@ -95,7 +95,8 @@ for index, seed in enumerate(list_seed):
 
     print("Chi2 Top 20 Scores")
 
-    top20_chi2 = sorted(zip(best_chi2_features, chi2_score), key=lambda x: round(x[1],2))
+    top20_chi2 = pd.DataFrame(sorted(zip(best_chi2_features, chi2_score), key=lambda x: round(x[1],2), reverse=True))
+    top20_chi2.to_csv(score_path+"/chi2.csv", header=False)
     logs["Top 20 Chi2 Test"] = top20_chi2
     print(top20_chi2)
     # chi2_scores = pd.DataFrame(data=kbestchi2.scores_, columns=df_final.columns[chi2_selector.get_support(indices=True)])
@@ -113,7 +114,8 @@ for index, seed in enumerate(list_seed):
 
     print("ANOVA F-value Top 20 Scores")
 
-    top20_anova = sorted(zip(best_chi2_features, chi2_score), key=lambda x: x[1])
+    top20_anova = pd.DataFrame(sorted(zip(best_chi2_features, chi2_score), key=lambda x: round(x[1],2), reverse=True))
+    top20_anova.to_csv(score_path+"/anova.csv", header=False)
     print(top20_anova)
     logs["Top 20 ANOVA F-value"] = top20_anova
     # X = SelectKBest(chi2, k=400).fit_transform(X, y)
@@ -137,7 +139,8 @@ for index, seed in enumerate(list_seed):
     scores = {}
     for i, classifier in enumerate(list_classifier):
         start_time = time.time()
-        clf, clf_name, GCV_param = classifier(gcv=controls["GridSearch"], default_param=controls["DefaultParams"], class_weight=class_weights, seed=seed)
+        clf, clf_name, GCV_param = classifier(gcv=controls["GridSearch"], default_param=controls["DefaultParams"],
+                                              dataset="-".join(dataset), class_weight=class_weights, seed=seed)
         if controls["DefaultParams"]:
             X_train, _, y_train, _ = train_test_split(X_train, y_train, test_size=0.2, random_state=seed)
         logs["Classifier "+str(i)] = clf_name
