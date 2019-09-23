@@ -38,6 +38,7 @@ def stem_tokens(tokens, stemmer):
 
 
 def preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stopword=True, stem=True):
+
     """
     function to preprocess data by tokenizing, exclude: numbers, punctuation, stopwords, and stemming
     """

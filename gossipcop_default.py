@@ -141,8 +141,7 @@ for index, seed in enumerate(list_seed):
         start_time = time.time()
         clf, clf_name, GCV_param = classifier(gcv=controls["GridSearch"], default_param=controls["DefaultParams"],
                                               dataset="-".join(dataset), class_weight=class_weights, seed=seed)
-        if controls["DefaultParams"]:
-            X_train, _, y_train, _ = train_test_split(X_train, y_train, test_size=0.2, random_state=seed)
+        X_train, _, y_train, _ = train_test_split(X_train, y_train, test_size=0.2, random_state=seed)
         logs["Classifier "+str(i)] = clf_name
         logs["Grid Search Parameter "+str(i)] = GCV_param
         clf.fit(X_train, y_train)

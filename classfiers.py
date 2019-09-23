@@ -14,16 +14,17 @@ def ada_boost(gcv, default_param,dataset, class_weight, seed, cv=1):
     grid_C = [0.1 * i for i in range(1, 21)]
     grid_N = [10 * i for i in range(1, 21)]
     if class_weight is not False:
-        DT_para = DTC(max_depth=3, criterion="entropy", random_state=seed, class_weight=class_weight)
+        DT_para = DTC(random_state=seed, class_weight=class_weight)
     else:
-        DT_para = DTC(max_depth=3, criterion="entropy", random_state=seed)
+        DT_para = DTC(random_state=seed)
     parameters = {'base_estimator': [DT_para],
                   'n_estimators': grid_N, 'learning_rate': grid_C, 'algorithm': ['SAMME'], 'random_state': [seed]}
     if not gcv:
         print("Start AdaBoost training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = AdaBoostClassifier()
+            clf = AdaBoostClassifier(base_estimator=DTC(random_state=seed, class_weight='balanced'), algorithm='SAMME',
+                                     random_state=seed)
         elif dataset == 'politifact':
             # {'algorithm': 'SAMME',
             #  'base_estimator': DecisionTreeClassifier(class_weight='balanced', criterion='entropy',
@@ -33,29 +34,30 @@ def ada_boost(gcv, default_param,dataset, class_weight, seed, cv=1):
             #                                           min_weight_fraction_leaf=0.0, presort=False,
             #                                           random_state=1, splitter='best'), 'learning_rate': 1.5,
             #  'n_estimators': 20, 'random_state': 1}
-            clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(class_weight='balanced', criterion='entropy',
-                                                                       max_depth=3, max_features=None,
-                                                                       max_leaf_nodes=None, min_impurity_decrease=0.0,
-                                                                       min_impurity_split=None, min_samples_leaf=1,
-                                                                       min_samples_split=2, min_weight_fraction_leaf=0.0,
-                                                                       presort=False, random_state=seed, splitter='best'),
+            clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(random_state=seed, class_weight='balanced'),
                                  learning_rate=1.5, n_estimators=20, random_state=seed)
-        elif dataset == 'politifact':
-            clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(class_weight='balanced', criterion='entropy',
-                                                                       max_depth=None, max_features=None,
-                                                                       max_leaf_nodes=None, min_impurity_decrease=0.0,
-                                                                       min_impurity_split=None, min_samples_leaf=1,
-                                                                       min_samples_split=2, min_weight_fraction_leaf=0.0,
-                                                                       presort=False, random_state=seed, splitter='best'),
-                                 learning_rate=1.8, n_estimators=10, random_state=seed)
-        elif dataset == 'politifact':
-            clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(class_weight='balanced', criterion='entropy',
-                                                                       max_depth=None, max_features=None,
-                                                                       max_leaf_nodes=None, min_impurity_decrease=0.0,
-                                                                       min_impurity_split=None, min_samples_leaf=1,
-                                                                       min_samples_split=2, min_weight_fraction_leaf=0.0,
-                                                                       presort=False, random_state=seed, splitter='best'),
-                                 learning_rate=1.8, n_estimators=10, random_state=seed)
+        elif dataset == 'gossipcop':
+            # {'algorithm': 'SAMME',
+            #  'base_estimator': DecisionTreeClassifier(class_weight='balanced', criterion='entropy',
+            #                                           max_depth=3, max_features=None, max_leaf_nodes=None,
+            #                                           min_impurity_decrease=0.0, min_impurity_split=None,
+            #                                           min_samples_leaf=1, min_samples_split=2,
+            #                                           min_weight_fraction_leaf=0.0, presort=False,
+            #                                           random_state=1, splitter='best'),
+            #  'learning_rate': 1.9000000000000001, 'n_estimators': 10, 'random_state': 1}
+            clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(random_state=seed, class_weight='balanced'),
+                                 learning_rate=1.9000000000000001, n_estimators=10, random_state=seed)
+        elif dataset == 'politifact-gossipcop':
+            # {'algorithm': 'SAMME',
+            #  'base_estimator': DecisionTreeClassifier(class_weight='balanced', criterion='entropy',
+            #                                           max_depth=3, max_features=None, max_leaf_nodes=None,
+            #                                           min_impurity_decrease=0.0, min_impurity_split=None,
+            #                                           min_samples_leaf=1, min_samples_split=2,
+            #                                           min_weight_fraction_leaf=0.0, presort=False,
+            #                                           random_state=1, splitter='best'), 'learning_rate': 1.6,
+            #  'n_estimators': 10, 'random_state': 1}
+            clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(random_state=seed, class_weight='balanced'),
+                                 learning_rate=1.6, n_estimators=10, random_state=seed)
 
     else:
         print("Start AdaBoost hyperperameter tuning")
@@ -78,18 +80,22 @@ def knn(gcv, default_param, dataset, class_weight, seed, cv=1):
         print("Start KNN training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = KNeighborsClassifier()
+            clf = KNeighborsClassifier(weights='uniform', leaf_size=30, p=2, metric='minkowski', metric_params=None, n_jobs=40)
         elif dataset == 'politifact':
             # {'algorithm': 'ball_tree', 'leaf_size': 30, 'metric': 'minkowski', 'metric_params': None, 'n_neighbors': 6,
             #  'p': 2, 'weights': 'uniform'}
             clf = KNeighborsClassifier(algorithm='ball_tree', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=40,
                                        n_neighbors=6, p=2, weights='uniform')
         elif dataset == 'gossipcop':
-            clf = KNeighborsClassifier(algorithm='kd_tree', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=40,
-                                       n_neighbors=10, p=2, weights='uniform')
+            # {'algorithm': 'ball_tree', 'leaf_size': 30, 'metric': 'minkowski', 'metric_params': None, 'n_neighbors': 7,
+            #  'p': 2, 'weights': 'uniform'}
+            clf = KNeighborsClassifier(algorithm='ball_tree', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=40,
+                                       n_neighbors=7, p=2, weights='uniform')
         elif dataset == 'politifact-gossipcop':
-            clf = KNeighborsClassifier(algorithm='kd_tree', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=40,
-                                       n_neighbors=10, p=2, weights='uniform')
+            # {'algorithm': 'ball_tree', 'leaf_size': 30, 'metric': 'minkowski', 'metric_params': None, 'n_neighbors': 9,
+            #  'p': 2, 'weights': 'uniform'}
+            clf = KNeighborsClassifier(algorithm='ball_tree', leaf_size=30, metric='minkowski', metric_params=None, n_jobs=40,
+                                       n_neighbors=9, p=2, weights='uniform')
     else:
         print("Start KNN hyperperameter tuning")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
@@ -114,7 +120,9 @@ def dt(gcv, default_param, dataset, class_weight, seed, cv=1):
         print("Start Decision Tree training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = DTC()
+            clf = DTC(class_weight='balanced', max_depth=None, max_features=None, max_leaf_nodes=None,
+                      min_impurity_decrease=0.0, min_impurity_split=None, min_samples_leaf=1, min_samples_split=2,
+                      min_weight_fraction_leaf=0.0, presort=False, random_state=seed)
         elif dataset == 'politifact':
             # {'class_weight': 'balanced', 'criterion': 'gini', 'max_depth': None, 'max_features': None,
             #  'max_leaf_nodes': None, 'min_impurity_decrease': 0.0, 'min_impurity_split': None, 'min_samples_leaf': 1,
@@ -124,10 +132,18 @@ def dt(gcv, default_param, dataset, class_weight, seed, cv=1):
                       min_impurity_decrease=0.0, min_impurity_split=None, min_samples_leaf=1, min_samples_split=2,
                       min_weight_fraction_leaf=0.0, presort=False, random_state=seed, splitter='best')
         elif dataset == 'gossipcop':
+            # {'class_weight': 'balanced', 'criterion': 'entropy', 'max_depth': None, 'max_features': None,
+            #  'max_leaf_nodes': None, 'min_impurity_decrease': 0.0, 'min_impurity_split': None, 'min_samples_leaf': 1,
+            #  'min_samples_split': 2, 'min_weight_fraction_leaf': 0.0, 'presort': False, 'random_state': 1,
+            #  'splitter': 'best'}
             clf = DTC(class_weight='balanced', criterion='entropy', max_depth=None, max_features=None, max_leaf_nodes=None,
                       min_impurity_decrease=0.0, min_impurity_split=None, min_samples_leaf=1, min_samples_split=2,
                       min_weight_fraction_leaf=0.0, presort=False, random_state=seed, splitter='best')
         elif dataset == 'politifact-gossipcop':
+            # {'class_weight': 'balanced', 'criterion': 'entropy', 'max_depth': None, 'max_features': None,
+            #  'max_leaf_nodes': None, 'min_impurity_decrease': 0.0, 'min_impurity_split': None, 'min_samples_leaf': 1,
+            #  'min_samples_split': 2, 'min_weight_fraction_leaf': 0.0, 'presort': False, 'random_state': 1,
+            #  'splitter': 'best'}
             clf = DTC(class_weight='balanced', criterion='entropy', max_depth=None, max_features=None, max_leaf_nodes=None,
                       min_impurity_decrease=0.0, min_impurity_split=None, min_samples_leaf=1, min_samples_split=2,
                       min_weight_fraction_leaf=0.0, presort=False, random_state=seed, splitter='best')
@@ -155,7 +171,8 @@ def svm(gcv, default_param, dataset, class_weight, seed, cv=1):
         print("Start SVM training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = SVC()
+            clf = SVC(class_weight=class_weight, gamma='auto',  coef0= 0.0, probability= False, random_state=seed, shrinking= True, tol= 0.0005,
+                      verbose= False, decision_function_shape= 'ovr', cache_size=200, max_iter=30000)
         elif dataset == 'politifact':
             # {'C': 5.5, 'cache_size': 200, 'class_weight': 'balanced', 'coef0': 0.0, 'decision_function_shape': 'ovr',
             #  'degree': 1, 'gamma': 'auto', 'kernel': 'linear', 'max_iter': 30000, 'probability': False,
@@ -165,12 +182,18 @@ def svm(gcv, default_param, dataset, class_weight, seed, cv=1):
                       max_iter= 30000, probability= False, random_state=seed, shrinking= True,
                       tol= 0.0005, verbose= False)
         elif dataset == 'gossipcop':
-            clf = SVC(C= 2.5, cache_size= 200, class_weight= 'balanced', coef0= 0.0,
+            # {'C': 9.5, 'cache_size': 200, 'class_weight': 'balanced', 'coef0': 0.0, 'decision_function_shape': 'ovr',
+            #  'degree': 1, 'gamma': 'auto', 'kernel': 'linear', 'max_iter': 30000, 'probability': False,
+            #  'random_state': 1, 'shrinking': True, 'tol': 0.0005, 'verbose': False}
+            clf = SVC(C= 9.5, cache_size= 200, class_weight= 'balanced', coef0= 0.0,
                       decision_function_shape= 'ovr', degree= 1, gamma= 'auto', kernel= 'linear',
                       max_iter= 30000, probability= False, random_state=seed, shrinking= True,
                       tol= 0.0005, verbose= False)
         elif dataset == 'politifact-gossipcop':
-            clf = SVC(C=2.5, cache_size=200, class_weight='balanced', coef0=0.0,
+            # {'C': 5.0, 'cache_size': 200, 'class_weight': 'balanced', 'coef0': 0.0, 'decision_function_shape': 'ovr',
+            #  'degree': 1, 'gamma': 'auto', 'kernel': 'linear', 'max_iter': 30000, 'probability': False,
+            #  'random_state': 1, 'shrinking': True, 'tol': 0.0005, 'verbose': False}
+            clf = SVC(C=5.0, cache_size=200, class_weight='balanced', coef0=0.0,
                       decision_function_shape='ovr', degree=1, gamma='auto', kernel='linear',
                       max_iter=30000, probability=False, random_state=seed, shrinking=True,
                       tol=0.0005, verbose=False)
@@ -206,7 +229,12 @@ def random_forest(gcv, default_param, dataset, class_weight, seed, cv=1):
         print("Start Random Forest training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = RandomForestClassifier()
+            clf = RandomForestClassifier(class_weight=class_weight, max_depth=None,
+                                         max_features='auto',
+                                         max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None,
+                                         min_samples_leaf=1, min_samples_split=2, min_weight_fraction_leaf=0.0,
+                                         n_jobs=40, oob_score=False, random_state=seed, verbose=0,
+                                         warm_start=False)
         elif dataset == 'politifact':
             # {'bootstrap': True, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_depth': None,
             #  'max_features': 'auto', 'max_leaf_nodes': None, 'min_impurity_decrease': 0.0, 'min_impurity_split': None,
@@ -219,18 +247,26 @@ def random_forest(gcv, default_param, dataset, class_weight, seed, cv=1):
                                          n_estimators=50, n_jobs=40, oob_score=False, random_state=seed, verbose=0,
                                          warm_start=False)
         elif dataset == 'gossipcop':
-            clf = RandomForestClassifier(class_weight=class_weight, bootstrap=True, criterion='gini', max_depth=None,
+            # {'bootstrap': True, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_depth': None,
+            #  'max_features': 'auto', 'max_leaf_nodes': None, 'min_impurity_decrease': 0.0, 'min_impurity_split': None,
+            #  'min_samples_leaf': 1, 'min_samples_split': 2, 'min_weight_fraction_leaf': 0.0, 'n_estimators': 120,
+            #  'oob_score': False, 'random_state': 1, 'verbose': 0, 'warm_start': False}
+            clf = RandomForestClassifier(class_weight=class_weight, bootstrap=True, criterion='entropy', max_depth=None,
                                          max_features='auto',
                                          max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None,
                                          min_samples_leaf=1, min_samples_split=2, min_weight_fraction_leaf=0.0,
-                                         n_estimators=110, n_jobs=40, oob_score=False, random_state=seed, verbose=0,
+                                         n_estimators=120, n_jobs=40, oob_score=False, random_state=seed, verbose=0,
                                          warm_start=False)
         elif dataset == "politifact-gossipcop":
-            clf = RandomForestClassifier(class_weight=class_weight, bootstrap=True, criterion='gini', max_depth=None,
+            # {'bootstrap': True, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_depth': None,
+            #  'max_features': 'auto', 'max_leaf_nodes': None, 'min_impurity_decrease': 0.0, 'min_impurity_split': None,
+            #  'min_samples_leaf': 1, 'min_samples_split': 2, 'min_weight_fraction_leaf': 0.0, 'n_estimators': 300,
+            #  'oob_score': False, 'random_state': 1, 'verbose': 0, 'warm_start': False}
+            clf = RandomForestClassifier(class_weight=class_weight, bootstrap=True, criterion='entropy', max_depth=None,
                                          max_features='auto',
                                          max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None,
                                          min_samples_leaf=1, min_samples_split=2, min_weight_fraction_leaf=0.0,
-                                         n_estimators=110, n_jobs=40, oob_score=False, random_state=seed, verbose=0,
+                                         n_estimators=300, n_jobs=40, oob_score=False, random_state=seed, verbose=0,
                                          warm_start=False)
     else:
         print("Start Random Forest hyperperameter tuning")
@@ -258,7 +294,7 @@ def xgboost(gcv, default_param, dataset, class_weight, seed, cv=1):
         print("Start XGBoost training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = xgb.XGBClassifier()
+            clf = xgb.XGBClassifier(random_state=seed, class_weight=class_weight, n_jobs=40)
         elif dataset == 'politifact':
             # {'booster': 'dart', 'class_weight': 'balanced', 'learning_rate': 0.5, 'max_depth': 6, 'n_estimators': 10,
             #  'num_class': 6, 'objective': 'multi:softmax', 'random_state': 1, 'subsample': 0.7}
@@ -266,10 +302,14 @@ def xgboost(gcv, default_param, dataset, class_weight, seed, cv=1):
                                     objective='multi:softmax', random_state=seed, subsample=0.7, n_jobs=40, verbosity=0,
                                     class_weight=class_weight)
         elif dataset == 'gossipcop':
-            clf = xgb.XGBClassifier(booster='dart', learning_rate=0.30000000000000004, max_depth=6, n_estimators=120, num_class=6,
-                                    objective='multi:softmax', random_state=seed, subsample=0.8, n_jobs=40, verbosity=0,
+            # {'booster': 'dart', 'class_weight': 'balanced', 'learning_rate': 0.2, 'max_depth': 6, 'n_estimators': 130,
+            #  'num_class': 2, 'objective': 'multi:softmax', 'random_state': 1, 'subsample': 0.7}
+            clf = xgb.XGBClassifier(booster='dart', learning_rate=0.2, max_depth=6, n_estimators=130, num_class=2,
+                                    objective='multi:softmax', random_state=seed, subsample=0.7, n_jobs=40, verbosity=0,
                                     class_weight=class_weight)
         elif dataset == 'politifact-gossipcop':
+            # {'booster': 'dart', 'class_weight': 'balanced', 'learning_rate': 0.30000000000000004, 'max_depth': 6,
+            #  'n_estimators': 120, 'num_class': 6, 'objective': 'multi:softmax', 'random_state': 1, 'subsample': 0.8}
             clf = xgb.XGBClassifier(booster='dart', learning_rate=0.30000000000000004, max_depth=6, n_estimators=120, num_class=6,
                                     objective='multi:softmax', random_state=seed, subsample=0.8, n_jobs=40, verbosity=0,
                                     class_weight=class_weight)
@@ -296,15 +336,19 @@ def logistic_reg(gcv, default_param,dataset, class_weight, seed, cv=1):
         print("Start Logistic Regression training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = LogisticRegression()
+            clf = LogisticRegression(max_iter=4000, random_state=seed, class_weight=class_weight, n_jobs=40)
         elif dataset == 'politifact':
             # {'C': 7.0, 'class_weight': 'balanced', 'max_iter': 4000, 'multi_class': 'multinomial', 'random_state': 1, 'solver': 'newton-cg', 'tol': 0.0005}
             clf = LogisticRegression(tol=0.0005, C=7.0, max_iter=4000, multi_class='multinomial', random_state=seed, solver='newton-cg',
                                      class_weight=class_weight, n_jobs=40)
         elif dataset == 'gossipcop':
-            clf = LogisticRegression(tol=0.0005, C=7.0, max_iter=4000, multi_class='multinomial', random_state=seed, solver='sag',
+            # {'C': 10.0, 'class_weight': 'balanced', 'max_iter': 4000, 'multi_class': 'multinomial', 'random_state': 1,
+            #  'solver': 'sag', 'tol': 0.0005}
+            clf = LogisticRegression(tol=0.0005, C=10.0, max_iter=4000, multi_class='multinomial', random_state=seed, solver='sag',
                                      class_weight=class_weight, n_jobs=40)
         elif dataset == 'politifact-gossipcop':
+            # {'C': 7.0, 'class_weight': 'balanced', 'max_iter': 4000, 'multi_class': 'multinomial', 'random_state': 1,
+            #  'solver': 'sag', 'tol': 0.0005}
             clf = LogisticRegression(tol=0.0005, C=7.0, max_iter=4000, multi_class='multinomial', random_state=seed, solver='sag',
                                      class_weight=class_weight, n_jobs=40)
 
