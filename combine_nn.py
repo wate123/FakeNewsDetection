@@ -11,9 +11,9 @@ seed = 1
 np.random.seed(seed)
 torch.manual_seed(seed)
 
-# dataset = ['politifact', 'gossipcop']
+dataset = ['politifact', 'gossipcop']
 # dataset = ['politifact']
-dataset = ['gossipcop']
+# dataset = ['gossipcop']
 print("Preparing Dataset")
 start = time.time()
 data = NewsContent('../fakenewsnet_dataset', dataset, ['fake', 'real'])

@@ -12,8 +12,8 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 
 # dataset = ['politifact', 'gossipcop']
-# dataset = ['politifact']
-dataset = ['gossipcop']
+dataset = ['politifact']
+# dataset = ['gossipcop']
 print("Preparing Dataset")
 start = time.time()
 data = NewsContent('../fakenewsnet_dataset', dataset, ['fake', 'real'])
@@ -59,16 +59,16 @@ separate_dataset_grid_search = {
     # [0.05 * i for i in range(11)]
 
     # Politifact
-    "lstm_drop": [0.00],
-    "drop1": [0.00],
+    "lstm_drop": [0.05],
+    "drop1": [0.05],
 
     # "lstm_drop": [0.05 * i for i in range(11)],
     # "drop1": [0.05 * i for i in range(11)],
 
-    "drop2": [0.05 * i for i in range(11)],
-    "drop3": [0.05 * i for i in range(11)],
-    # "drop2": [0.05],
-    # "drop3": [0.05],
+    # "drop2": [0.05 * i for i in range(11)],
+    # "drop3": [0.05 * i for i in range(11)],
+    "drop2": [0.05],
+    "drop3": [0.05],
 
     # politifact
     "lr": [1.2e-3]
