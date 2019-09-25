@@ -126,7 +126,7 @@ class Train_Model(object):
     def train_model(self, **kwargs):
         torch.manual_seed(kwargs['seed'])
         train_args = {
-            "epochs": 20,
+            "epochs": kwargs['epochs'],
             "batch_size": kwargs['batch_size'],
             "validate": True,
             "save_best_dev": True,

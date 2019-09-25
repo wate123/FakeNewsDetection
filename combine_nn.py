@@ -29,6 +29,7 @@ grid_search = {
     # "out_size2": [2 ** i for i in range(4, 9)],
     "out_size1": [512],
     "out_size2": [256],
+    "epochs": [20],
     # pretrain w2v
     # "out_size1": [512],
     # "out_size2": [256],
@@ -56,7 +57,7 @@ data_dict.update({"device": device})
 start = time.time()
 train = Train_Model()
 for grid in [dict(zip(grid_search.keys(), v)) for v in product(*grid_search.values())]:
-    if grid["out_size1"] > grid["out_size2"]:
+    if grid["drop2"] > grid["drop3"]:
         new_args = {**data_dict, **grid}
         train.train_model(**new_args)
 

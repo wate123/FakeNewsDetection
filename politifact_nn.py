@@ -49,10 +49,10 @@ separate_dataset_grid_search = {
     # "out_size2": [2 ** i for i in range(4, 9)],
     # "out_size1": [256],
     # "out_size2": [64],
-
+    "epochs": [20],
     # Politifact
-    "out_size1": [512],
-    "out_size2": [128],
+    "out_size1": [128],
+    "out_size2": [32],
     # pretrain w2v
     # "out_size1": [512],
     # "out_size2": [256],

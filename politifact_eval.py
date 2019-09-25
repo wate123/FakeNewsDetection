@@ -50,7 +50,7 @@ for index, seed in enumerate(list_seed):
     np.random.seed(seed)
     random.seed(seed)
     feature_generator = [CountFeatureGenerator(out_file_path), SentimentFeatureGenerator(out_file_path),
-                         SvdFeature(out_file_path, seed), Word2VecFeatureGenerator(data.get_features("pair"), dataset)]
+                         SvdFeature(out_file_path, seed)]
 
     for g in feature_generator:
         save_path = g.process_and_save()

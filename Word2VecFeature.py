@@ -130,6 +130,7 @@ class Word2VecFeatureGenerator(object):
         w2v_feature_df["label"] = pd.read_csv("data.csv")["label"]
         w2v_feature_df.to_csv("./Features/"+"-".join(self.dataset)+"/w2v_feature.csv", index=False)
         print("Done! save into w2v_features.csv")
+        return {"W2v Feature Path": "./Features/"+"-".join(self.dataset)+"/w2v_feature.csv"}
 
     def get_weights(self):
         return self.model.wv.vectors

@@ -141,8 +141,6 @@ for index, seed in enumerate(list_seed):
         start_time = time.time()
         clf, clf_name, GCV_param = classifier(gcv=controls["GridSearch"], default_param=controls["DefaultParams"],
                                               dataset="-".join(dataset), class_weight=class_weights, seed=seed)
-        if controls["DefaultParams"]:
-            X_train, _, y_train, _ = train_test_split(X_train, y_train, test_size=0.2, random_state=seed)
         logs["Classifier "+str(i)] = clf_name
         logs["Grid Search Parameter "+str(i)] = GCV_param
         clf.fit(X_train, y_train)
@@ -168,7 +166,7 @@ for index, seed in enumerate(list_seed):
         scores[clf_name] = score
         # print(tpfptnfn)
         # scores.append(score)
-        print(preRecF1)
+        print(metrics.classification_report(y_test, y_predict))
         if controls["GridSearch"]:
             print(clf.best_params_)
             logs["Best GCV Params " +str(i)] = clf.best_params_

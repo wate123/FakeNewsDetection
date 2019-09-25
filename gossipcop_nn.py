@@ -45,11 +45,11 @@ print("Data preparation took {} hour {} min {} sec".format(duration // 3600, (du
 # }
 
 separate_dataset_grid_search = {
-    "out_size1": [2 ** i for i in range(5, 10)],
-    "out_size2": [2 ** i for i in range(4, 9)],
-    # "out_size1": [256],
-    # "out_size2": [64],
-
+    # "out_size1": [2 ** i for i in range(5, 10)],
+    # "out_size2": [2 ** i for i in range(4, 9)],
+    "out_size1": [523],
+    "out_size2": [32],
+    "epochs": [20],
     # [0.05 * i for i in range(11)]
 
     "lstm_drop": [0.05],
