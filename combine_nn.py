@@ -29,7 +29,7 @@ grid_search = {
     # "out_size2": [2 ** i for i in range(4, 9)],
     "out_size1": [512],
     "out_size2": [256],
-    "epochs": [20],
+    "epochs": [40],
     # pretrain w2v
     # "out_size1": [512],
     # "out_size2": [256],
@@ -38,10 +38,10 @@ grid_search = {
     "drop1": [0.05],
     # "lstm_drop": [0.05 * i for i in range(11)],
     # "drop1": [0.05 * i for i in range(11)],
-    "drop2": [0.05 * i for i in range(11)],
-    "drop3": [0.05 * i for i in range(11)],
-    # "drop2": [0.05],
-    # "drop3": [0.05],
+    # "drop2": [0.05 * i for i in range(11)],
+    # "drop3": [0.05 * i for i in range(11)],
+    "drop2": [0.04],
+    "drop3": [0.25],
     "lr": [1.2e-3]
 }
 

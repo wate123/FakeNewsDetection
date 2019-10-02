@@ -52,16 +52,16 @@ separate_dataset_grid_search = {
     "epochs": [20],
     # [0.05 * i for i in range(11)]
 
-    "lstm_drop": [0.05],
-    "drop1": [0.05],
+    "lstm_drop": [0.35000000000000003],
+    "drop1": [0.00],
 
     # "lstm_drop": [0.05 * i for i in range(11)],
     # "drop1": [0.05 * i for i in range(11)],
 
-    # "drop2": [0.05 * i for i in range(11)],
-    # "drop3": [0.05 * i for i in range(11)],
-    "drop2": [0.05],
-    "drop3": [0.05],
+    "drop2": [0.05 * i for i in range(11)],
+    "drop3": [0.05 * i for i in range(11)],
+    # "drop2": [0.05],
+    # "drop3": [0.05],
 
     # politifact
     # "lr": [1.2e-3]
@@ -81,7 +81,7 @@ data_dict.update({"device": device})
 start = time.time()
 train = Train_Model()
 for grid in [dict(zip(separate_dataset_grid_search.keys(), v)) for v in product(*separate_dataset_grid_search.values())]:
-    if grid["out_size1"] > grid["out_size2"]:
+    if grid["drop2"] > grid["drop3"]:
         new_args = {**data_dict, **grid}
         train.train_model(**new_args)
 

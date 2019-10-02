@@ -52,9 +52,9 @@ for index, seed in enumerate(list_seed):
     feature_generator = [CountFeatureGenerator(out_file_path), SentimentFeatureGenerator(out_file_path),
                          SvdFeature(out_file_path, seed)]
 
-    for g in feature_generator:
-        save_path = g.process_and_save()
-        logs.update(save_path)
+    # for g in feature_generator:
+    #     save_path = g.process_and_save()
+    #     logs.update(save_path)
     # w2v.process_and_save()
     # df = CountFeatureGenerator().read()
     # count = df["count_body_uni"].values

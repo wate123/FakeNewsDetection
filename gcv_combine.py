@@ -131,7 +131,8 @@ for index, seed in enumerate(list_seed):
     class_weights = "balanced"
     # class_weights = False
     # class_weights = {str(index): float(value) for index, value in enumerate(compute_class_weight('balanced', np.unique(y_train), y_train))}
-    list_classifier = [logistic_reg, knn, svm, dt, random_forest, ada_boost]
+    list_classifier = [ada_boost]
+    # list_classifier = [logistic_reg, knn, svm, dt, random_forest]
     # list_classifier = [svm]
     logs["Class Weights"] = class_weights
     # clf = xgboost(gcv=True)
@@ -159,10 +160,10 @@ for index, seed in enumerate(list_seed):
         # tpfptnfn = metrics.confusion_matrix(y_test, y_predict)
         preRecF1 = metrics.classification_report(y_test, y_predict, output_dict=True)
         score = {}
-        score["Accuracy"] = round(preRecF1["accuracy"], 2)
-        score["Precision"] = round(preRecF1["weighted avg"]["precision"],2)
-        score["Recall"] = round(preRecF1["weighted avg"]["recall"],2)
-        score["F1"] = round(preRecF1["weighted avg"]["f1-score"],2)
+        score["Accuracy"] = round(preRecF1["accuracy"], 3)
+        score["Precision"] = round(preRecF1["weighted avg"]["precision"],3)
+        score["Recall"] = round(preRecF1["weighted avg"]["recall"],3)
+        score["F1"] = round(preRecF1["weighted avg"]["f1-score"],3)
         scores[clf_name] = score
         # print(tpfptnfn)
         # scores.append(score)
