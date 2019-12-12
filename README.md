@@ -1,5 +1,5 @@
 # Fake News Detection
-
+[Paper](https://www.dropbox.com/s/9sqxkiorz2zbe5r/Lin19REU.pdf?dl=0) for more detail
 ## Getting Started
 
 
