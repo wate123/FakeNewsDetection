@@ -1,7 +1,7 @@
 import json
 import re
 from os import walk
-from os.path import join, exists
+from os.path import join
 import nltk
 from gensim.models.phrases import Phrases, Phraser
 # from spellchecker import SpellChecker
@@ -10,14 +10,8 @@ from sklearn.model_selection import learning_curve
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from joblib import Parallel, delayed
-import multiprocessing as mp
-import math
-import time
 # % matplotlib inline
 from sklearn.manifold import TSNE
-from sklearn.metrics import f1_score
-import itertools
 
 # global variables for preprocessing text data
 
@@ -28,7 +22,7 @@ token_pattern = r"(?u)\b\w\w+\b"
 
 def stem_tokens(tokens, stemmer):
     """
-    Function for tokens for stemming
+    Function to stem the words
     """
     stemmed = []
     # going through tokens stem where needed
@@ -421,77 +415,3 @@ def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
     plt.legend(loc="best")
     plt.show()
     # return plt
-
-def simplifiedTest(target,parameters, X_train,X_test,y_train,y_test,outputResult):
-    model = target(**parameters)
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    F1 = f1_score(y_test, y_pred, average='weighted')
-    #return (parameters,F1)
-    outputResult.put((parameters,F1))
-
-def myParallel(model, parameter, X_train, X_valid, y_train, y_valid, new_paras):
-    parallelProcesses = 40
-    # =============================================================================
-    #     pool = mp.Pool(processes=20)
-    #     argList = []
-    #     for parameter in new_paras:
-    #         argList.append({'target':model,'parameters':parameter,'X_train':X_train,'X_test':X_valid,'y_train':y_train,'y_test':y_valid})
-    #     print(len(argList))
-    #     results = pool.map(simplifiedTest, argList)
-    # =============================================================================
-
-    periods = math.ceil(len(new_paras) / parallelProcesses)
-    results = []
-    for i in range(periods):
-        # print('fetching lists')
-        newList = new_paras[parallelProcesses * i:parallelProcesses * (i + 1)]
-        # print('creating queues')
-        # Define an output queue
-        output = mp.Queue()
-        # Setup a list of processes that we want to run
-        processes = [mp.Process(target=simplifiedTest,
-                                args=(model, parameter, X_train, X_valid, y_train, y_valid, output)) for parameter in
-                     newList]
-        # print('starting jobs')
-        # Run processes
-        for p in processes:
-            p.start()
-        # print('collecting jobs')
-        # Exit the completed processes
-        for p in processes:
-            p.join()
-        # print('appending results')
-        # Get process results from the output queue
-        results += [output.get() for p in processes]
-        # print('take a nap')
-        time.sleep(10)
-
-    scores = [item[1] for item in results]
-    myIndex = scores.index(max(scores))
-    return results[myIndex][0]
-
-
-def simplifiedCV(target, parameters, X_train, X_valid, y_train, y_valid):
-    new_paras = [dict(zip(parameters.keys(), v)) for v in itertools.product(*parameters.values())]
-    result = myParallel(target, new_paras, X_train, X_valid, y_train, y_valid, new_paras)
-    return result
-
-# def save_results(results, out_path):
-
-# def unpack_pair_generator(data):
-#     pairs = []
-#     try:
-#         for title, body in data:
-#             pairs.append({"title": title, "body": body})
-#     except TypeError:
-#         pass
-#     return pairs
-
-# def train_test_split(data):
-#     train_set = {}
-#     test_set = {}
-#     for feature in self.count_features.keys():
-#         train, test = train_test_split(self.count_features[feature], test_size=0.2)
-#         train_set[feature] = train
-#         test_set[feature] = test

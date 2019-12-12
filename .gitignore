@@ -126,6 +126,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-.idea/workspace.xml
+.idea/*
 .bin
-TfidfFeatyre.py
+.Default_Param/*
+./Features/*
+./Grid_Search/*
+./learning_rate/*
+./new_expt/*
+./nn_tune/*
+./Results/*

@@ -1,17 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-
-from Word2VecFeature import Word2VecFeatureGenerator
-from sklearn.model_selection import train_test_split
-
-from utils import NewsContent
-
-from gensim.models.word2vec import LineSentence
-import numpy as np
-import pandas as pd
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, classification_report
+from sklearn.metrics import classification_report
 from nn_utils import save_model, load_model
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
@@ -116,6 +106,7 @@ class Model(nn.Module):
 
 
         # no activation
+
         r = self.out2(self.drop3(r))
         # r = F.softmax(r)
         # r = torch.sigmoid(r)
@@ -126,7 +117,7 @@ class Train_Model(object):
     def train_model(self, **kwargs):
         torch.manual_seed(kwargs['seed'])
         train_args = {
-            "epochs": kwargs['epochs'],
+            "epochs": 20,
             "batch_size": kwargs['batch_size'],
             "validate": True,
             "save_best_dev": True,
@@ -213,6 +204,7 @@ class Train_Model(object):
                 with SummaryWriter(comment='Validate Accuracy') as w:
                     w.add_scalar("validate_acc", test_acc)
                 print("Validate Accuracy: {:>4.6}".format(test_acc))
+                save_model(model, train_args["model_path"], grid)
                 global GLOBAL_BEST_Accuracy
                 if test_acc > GLOBAL_BEST_Accuracy:
                     GLOBAL_BEST_Accuracy = test_acc
@@ -224,6 +216,7 @@ class Train_Model(object):
                 #     save_model(model, "./model.pkl", grid)
                 #     print("Current Grid Parameters", grid)
                 #     print("Saved better model selected by validation.")
+
         plt.plot(vali_acc)
         plt.title("lr = "+str(kwargs["lr"]))
         if os.path.exists('./learning_rate/'+kwargs["dataset_name"]+'/learning_curve_'+str(kwargs["lr"])+'.png'):
@@ -276,8 +269,15 @@ class Test_Model(object):
         #     [str(key) + "=" + "{:.5f}".format(value)
         #      for key, value in result_metrics.items()])))
         # return result_metrics
+        preRecF1= classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real'], output_dict=True)
         # test_acc = accuracy_score(truth.cpu(), pred.cpu())
         # print(classification_report(truth.cpu(), pred.cpu(), target_names=['fake', 'real']))
+        print("Testing")
+        print("Accuracy, " + str(round(preRecF1["accuracy"], 3)))
+        print("Precision, "+ str(round(preRecF1["weighted avg"]["precision"],3)))
+        print("Recall, " + str(round(preRecF1["weighted avg"]["recall"],3)))
+        print("F1, " + str(round(preRecF1["weighted avg"]["f1-score"],3)))
+
         # test_acc = balanced_accuracy_score(truth.cpu(), pred.cpu(), weight.cpu())
         torch.cuda.empty_cache()
         return test_acc, pred

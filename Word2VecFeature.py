@@ -7,10 +7,8 @@ from functools import reduce
 from gensim.models.word2vec import LineSentence
 from gensim.models import KeyedVectors
 from utils import NewsContent, preprocess
-from os.path import isfile
-from joblib import Parallel, delayed
+import os
 import h5py
-import math
 
 class Word2VecFeatureGenerator(object):
     """
@@ -88,6 +86,10 @@ class Word2VecFeatureGenerator(object):
         return np.hstack([self.title_vec, self.body_vec, self.sim_vec])
 
     def get_nn_vecs(self):
+        """
+        Function to get the word2vec vectors for neural network
+        :return:
+        """
         print("Start prepare word2vec vectors")
         max_title_length = len(max(self.title_uni_list, key=len))
         max_body_length = 1000
@@ -126,14 +128,16 @@ class Word2VecFeatureGenerator(object):
         :param pair_data: title and body pairs
         """
         print("Generating Word2Vec Features")
+        try:
+            os.makedirs("./Features/"+"-".join(self.dataset))
+        except OSError:
+            raise
         w2v_feature_df = pd.DataFrame(self.get_title_body_cos_sim())
         w2v_feature_df["label"] = pd.read_csv("data.csv")["label"]
         w2v_feature_df.to_csv("./Features/"+"-".join(self.dataset)+"/w2v_feature.csv", index=False)
         print("Done! save into w2v_features.csv")
         return {"W2v Feature Path": "./Features/"+"-".join(self.dataset)+"/w2v_feature.csv"}
 
-    def get_weights(self):
-        return self.model.wv.vectors
 
     def read(self):
         """

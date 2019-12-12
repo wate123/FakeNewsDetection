@@ -2,14 +2,13 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 import xgboost as xgb
-from sklearn.feature_selection import chi2, SelectKBest, f_classif
 from sklearn.model_selection import GridSearchCV as GCV, ShuffleSplit
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier as DTC
-from sklearn import metrics
 import time, datetime
 
-
+# For ada boost, you have to tune the decision tree first and replace the parameters
+# in order to achieve the same result we have.
 def ada_boost(gcv, default_param,dataset, class_weight, seed, cv=1):
     grid_C = [0.1 * i for i in range(1, 21)]
     grid_N = [10 * i for i in range(1, 21)]
@@ -37,8 +36,21 @@ def ada_boost(gcv, default_param,dataset, class_weight, seed, cv=1):
         print("Start AdaBoost training")
         print("Start " + str(datetime.datetime.fromtimestamp(time.time())))
         if default_param:
-            clf = AdaBoostClassifier(algorithm='SAMME', base_estimator=DTC(random_state=seed, class_weight='balanced'), random_state=seed)
-            return clf, "Ada Boost", []
+            if dataset == "politifact":
+                clf = AdaBoostClassifier(algorithm='SAMME',
+                                         base_estimator=polti_param,
+                                         random_state=seed)
+                return clf, "Ada Boost", []
+            if dataset == "gossipcop":
+                clf = AdaBoostClassifier(algorithm='SAMME',
+                                         base_estimator=gossi_param,
+                                         random_state=seed)
+                return clf, "Ada Boost", []
+            if dataset == "politifact-gossipcop":
+                clf = AdaBoostClassifier(algorithm='SAMME',
+                                         base_estimator=combine_param,
+                                         random_state=seed)
+                return clf, "Ada Boost", []
         elif dataset == 'politifact':
             # {'algorithm': 'SAMME',
             #  'base_estimator': DecisionTreeClassifier(class_weight='balanced', criterion='entropy',
@@ -48,7 +60,7 @@ def ada_boost(gcv, default_param,dataset, class_weight, seed, cv=1):
             #                                           min_weight_fraction_leaf=0.0, presort=False,
             #                                           random_state=1, splitter='best'), 'learning_rate': 1.5,
             #  'n_estimators': 20, 'random_state': 1}
-            clf = AdaBoostClassifier(**{'algorithm': 'SAMME', 'base_estimator': DTC(**poli_parameters), 'learning_rate': 1.6, 'n_estimators': 10, 'random_state': 1})
+            clf = AdaBoostClassifier(**{'algorithm': 'SAMME', 'base_estimator': polti_param, 'learning_rate': 1.6, 'n_estimators': 10, 'random_state': 1})
             return clf, "Ada Boost", poli_parameters
         elif dataset == 'gossipcop':
             # {'algorithm': 'SAMME',
@@ -59,7 +71,7 @@ def ada_boost(gcv, default_param,dataset, class_weight, seed, cv=1):
             #                                           min_weight_fraction_leaf=0.0, presort=False,
             #                                           random_state=1, splitter='best'),
             #  'learning_rate': 1.9000000000000001, 'n_estimators': 10, 'random_state': 1}
-            clf = AdaBoostClassifier(**{'algorithm': 'SAMME', 'base_estimator': DTC(**gossi_parameters), 'learning_rate': 2.0, 'n_estimators': 150, 'random_state': 1})
+            clf = AdaBoostClassifier(**{'algorithm': 'SAMME', 'base_estimator': gossi_param, 'learning_rate': 2.0, 'n_estimators': 150, 'random_state': 1})
             return clf, "Ada Boost", gossi_parameters
         elif dataset == 'politifact-gossipcop':
             # {'algorithm': 'SAMME',
@@ -70,7 +82,7 @@ def ada_boost(gcv, default_param,dataset, class_weight, seed, cv=1):
             #                                           min_weight_fraction_leaf=0.0, presort=False,
             #                                           random_state=1, splitter='best'), 'learning_rate': 1.6,
             #  'n_estimators': 10, 'random_state': 1}
-            clf = AdaBoostClassifier(**{'algorithm': 'SAMME', 'base_estimator': DTC(**combine_parameters), 'learning_rate': 0.1, 'n_estimators': 90, 'random_state': 1})
+            clf = AdaBoostClassifier(**{'algorithm': 'SAMME', 'base_estimator': combine_param, 'learning_rate': 0.1, 'n_estimators': 90, 'random_state': 1})
             return clf, "Ada Boost", combine_parameters
     else:
         print("Start AdaBoost hyperperameter tuning")

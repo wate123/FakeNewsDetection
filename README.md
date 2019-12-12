@@ -4,15 +4,17 @@
 
 
 ### Prerequisites
+Make sure follow [FakeNewsNet](https://github.com/KaiDMML/FakeNewsNet) instruction to obtain the dataset first.
 
-- [FakeNewsNet Dataset](https://github.com/KaiDMML/FakeNewsNet)
+- Pretained word2vec model from google (if you want to use it, otherwise, set it to False)
 - python 3
 - gensim
 - scikit-learn
 - nltk
 - matplotlib
-- numpy, pandas
-- imblearn
+- numpy
+- pandas
+- pytorch
 
 
 ### Installing
@@ -24,15 +26,31 @@ pip install -r requirement.txt
 ### Run
 Replace the first parameter to your fakenewsnet_dataset location.
 ````
-NewsContent('../FakeNewsNet/code/fakenewsnet_dataset', ['politifact'], ['fake', 'real'])
+data = NewsContent('../fakenewsnet_dataset', dataset, ['fake', 'real'])
 ````
+Start training machine learning classifiers
 ````
-python main.py
+python main_gcv.py
 ````
+Start evaluate the models.
+```
+python main.eval.py
+```
+
+Start trianing LSTM+ATT
+```
+python nn_main.py
+```
 
 ### Project Structure
-**`main.py`**:
-process data and generate feature. 
+**`classfiers.py`**:
+Machine learning classifiers
+- AdaBoost
+- K-nearest-neighbor
+- Support vector machine
+- Random Forest
+- XGBoost
+- Logistic regression
 
 **`utils.py`**:   
 - NewsContent Class
@@ -40,31 +58,32 @@ process data and generate feature.
     - `save_in_sentence_form()` generate a json file of all news content with title, body, label key value pair.
     - `get_list_news_files()` generator function that yield each of news file path.
 - `stem_tokens(tokens, stemmer)` stem tokens for preprocessing
-- `preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stopword=True, stem=True)` tokenize words and        preprocess 
+- `preprocess(line, token_pattern=token_pattern, exclude_num=True, exclude_stopword=True, stem=True)` tokenize words and preprocess 
 - `remove_emoji(text)` remove emojis for preprocessing 
-- `get_ngram(n, sentence)` return n gram
-- `tsne_similar_word_plot(model, word)` feed in model and a word, plot tsne of similar words.  
+- `get_ngram(n, sentence)` n gram function
+- `tsne_similar_word_plot(model, word)` Utility function for visualization. feed in model and a word, plot tsne of similar words.  
 - `division(x, y, val = 0.0)` to divide two numbers
 - `plot_learning_curve(estimator, title, X, y, ylim=None, cv=None, n_jobs=None, train_sizes=np.linspace(.1, 1.0, 5))`          generate plot of training and testing learning curve 
 
 **`CountFeature.py`**  :    
 - CountFeatureGenerator Class
     - `process_and_save()` takes title and body pair data and write count feature into csv file.
-    - `read()` read the count feature csv file and make prediction
-- `get_article_part_count` count ngram of title or body 
+    - `read()` read the count feature csv file.
+- `get_article_part_count` get ngram of title or body 
 
 **`SentimentFeature.py`**: 
 - SentimentFeatureGenerator Class
     - `compute_sentiment()` compute polarity score of each sentences in title or body and average them
     - `process_and_save()` takes title and body pair data and write polarity score feature of title and body into csv file.
-    - `read()` read the title or body feature csv file and make prediction
+    - `read()` read the title or body sentiment feature from  csv file
     
 **`Word2VecFeature.py`**: 
 - Word2VecFeatureGenerator Class
-    - `get_norm_vectors()` get normalized word vector
-    - `get_title_body_cos_sim()` cosine similarity of title and body   
+    - `cosine_sim()` compute cosine similarity
+    - `get_title_body_cos_sim()` get cosine similarity between a title of article and its body content 
+    - `get_nn_vecs()` Function to get the word2vec vectors for neural network
     - `process_and_save()` takes title and body pair data and write polarity score feature of title and body into csv file.
-    - `read()` read the title or body feature csv file and make prediction     
+    - `read()` read the word2vec feature csv file for machine learning classifiers  
     
 **`SvdFeature.py`**:
 - SvdFeature Class
@@ -76,6 +95,8 @@ process data and generate feature.
 **`Parameters.py`**:
 To hold best parameters for various classifier models. 
 
+## Contribute
+- If you have any questions, please submit a issue!
 
 ## Authors
 

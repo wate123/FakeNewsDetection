@@ -2,14 +2,11 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 from h5py import File
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import normalize
 
-from sklearn.utils.class_weight import compute_class_weight
 import pandas as pd, numpy as np
 import pickle, os
-from sklearn.utils import shuffle
-import random
 class FakenewsDataset(Dataset):
     def __init__(self, X, y):
         self.X, self.ml,  self.y = X[0], X[1], y
