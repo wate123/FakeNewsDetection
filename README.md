@@ -34,7 +34,7 @@ python main_gcv.py
 ````
 Start evaluate the models.
 ```
-python main.eval.py
+python main_eval.py
 ```
 
 Start trianing LSTM+ATT
